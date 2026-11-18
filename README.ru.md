@@ -7,9 +7,9 @@
 бегущая по пути звезда разгорается и в конце гаснет. В финале — вся карта года и
 вклад каждого.
 
-<a href="docs/demo.webm?raw=true"><img src="docs/poster.jpg" alt="Git Journey — демо на 30 секунд" width="100%"></a>
+<a href="docs/demo.webm?raw=true"><img src="docs/poster.jpg" alt="Git Journey — демо, 1 минута" width="100%"></a>
 
-▶ **[Смотреть демо (30 секунд)](docs/demo.webm?raw=true)**
+▶ **[Смотреть демо (1 минута)](docs/demo.webm?raw=true)**
 
 
 > Видео: откройте `/?demo`, нажмите «Запись» → «Экран 16:9» или «Telegram 9:16» —
