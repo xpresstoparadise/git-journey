@@ -7,10 +7,7 @@ branch off it, the camera stops at every step the team took, and a star runs the
 way — it kindles, burns like a sparkler, and goes out at the end. The finale is a map of
 the year and what everyone put into it.
 
-<a href="docs/demo.webm?raw=true"><img src="docs/poster.jpg" alt="Git Journey — 1-minute demo" width="100%"></a>
-
-▶ **[Watch the 1-minute demo](docs/demo.webm?raw=true)**
-
+https://github.com/user-attachments/assets/762dc143-a4be-41a5-a7ce-23cd09ee2511
 
 > Video: open `/?demo`, press **Record** → 16:9 or Telegram 9:16 — you get an MP4 of the demo team.
 
