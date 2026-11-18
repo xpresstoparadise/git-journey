@@ -6,7 +6,7 @@ import { LANG } from "./i18n.js";
 // Covers what the real data has and more: MRs with their own commits spread
 // over days and weeks, two MRs open at once, a squashed MR without line stats,
 // a finished repo that merges back, a repo born mid-year — and the two special
-// moments: «Life-Way: finish» (api-adapters) and «Life-Way: goodbye» (Сергей Дудин).
+// moments: «Journey: finish» (api-adapters) and «Journey: goodbye» (Сергей Дудин).
 
 // The demo team speaks the interface language.
 const EN = LANG === "en";
@@ -106,7 +106,7 @@ function build() {
       ],
     }),
     makeProject(r, {
-      id: "life-way-ingest", desc: L10N("Сбор истории GitLab: проекты, коммиты, merge requests", "Collects GitLab history: projects, commits, merge requests"), owner: P[4], created: "2026-03-09",
+      id: "history-ingest", desc: L10N("Сбор истории GitLab: проекты, коммиты, merge requests", "Collects GitLab history: projects, commits, merge requests"), owner: P[4], created: "2026-03-09",
       from: "2026-03-10", to: "2026-11-16", team: [P[4], P[5], P[6]], mainEvery: 12, born: true,
       mrs: [
         { open: "2026-03-16", merge: "2026-04-02", commits: 6 },
@@ -154,7 +154,7 @@ function addSpecialMoments(projects) {
       }
     }
   }
-  byId["life-way-ingest"].events.push({
+  byId["history-ingest"].events.push({
     type: "commit", date: farewellDay, sha: "b1e55ed0", message: L10N("handover: README для новой команды", "handover: README for the new team"),
     author: leaver, additions: 212, deletions: 9, special: "goodbye", note: L10N("Спасибо, команда! Было круто.", "Thank you, team! It was a great ride."),
   });

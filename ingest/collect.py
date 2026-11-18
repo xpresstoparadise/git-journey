@@ -1,4 +1,4 @@
-"""Turn GitLab projects into Life Way projects: birth, commits and merged MRs on
+"""Turn GitLab projects into Git Journey projects: birth, commits and merged MRs on
 the default branch inside the period, plus full (unsampled) contribution totals.
 """
 from __future__ import annotations

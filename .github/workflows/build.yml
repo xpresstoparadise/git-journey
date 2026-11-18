@@ -33,13 +33,13 @@ jobs:
       matrix:
         include:
           - os: windows-latest
-            asset: git-life-way-windows-x64.exe
+            asset: git-journey-windows-x64.exe
             sep: ";"
           - os: ubuntu-22.04
-            asset: git-life-way-linux-x64
+            asset: git-journey-linux-x64
             sep: ":"
           - os: macos-latest
-            asset: git-life-way-macos-arm64
+            asset: git-journey-macos-arm64
             sep: ":"
     runs-on: ${{ matrix.os }}
     defaults:
@@ -57,12 +57,12 @@ jobs:
       - name: Build
         run: >
           pyinstaller --onefile --noconfirm --clean
-          --name git-life-way
+          --name git-journey
           --add-data "web${{ matrix.sep }}web"
           lifeway.py
       - name: Smoke test
         run: |
-          exe=dist/git-life-way; [ -f dist/git-life-way.exe ] && exe=dist/git-life-way.exe
+          exe=dist/git-journey; [ -f dist/git-journey.exe ] && exe=dist/git-journey.exe
           "$exe" --version
           mkdir -p smoke/repos/demo && cd smoke/repos/demo
           git init -q -b main
@@ -73,7 +73,7 @@ jobs:
           test -f web/data/gitlab_raw.js && test -f web/index.html
       - name: Rename
         run: |
-          src=dist/git-life-way; [ -f dist/git-life-way.exe ] && src=dist/git-life-way.exe
+          src=dist/git-journey; [ -f dist/git-journey.exe ] && src=dist/git-journey.exe
           mv "$src" "dist/${{ matrix.asset }}"
       - uses: actions/upload-artifact@v4
         with:

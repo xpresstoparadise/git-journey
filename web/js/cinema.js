@@ -291,7 +291,7 @@ export function createCinema({ L, scene, camera, hud, player, projects, dataset,
 
   const authors = authorSummary(projects, { dataset, period });
 
-  // ---- special scenes: «Life-Way: finish» and «Life-Way: goodbye» ----------------
+  // ---- special scenes: «Journey: finish» and «Journey: goodbye» ----------------
   async function playSpecial() {
     const node = pendingSpecial;
     pendingSpecial = null;

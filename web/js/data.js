@@ -19,8 +19,8 @@ const TYPE_ORDER = { created: 0, commit: 1, mr: 2 };
 
 // Same conventions as ingest/special.py — for exports where only the title survived.
 const SPECIAL = [
-  ["finish", /(?:^\s*life-?way\s*:\s*(?:finish|done|closed?)\b|#lifeway[-_]?(?:finish|done)\b)/im],
-  ["goodbye", /(?:^\s*life-?way\s*:\s*(?:goodbye|good-?bye|farewell|bye)\b|#lifeway[-_]?(?:goodbye|bye|farewell)\b)/im],
+  ["finish", /(?:^\s*(?:life-?way|journey)\s*:\s*(?:finish|done|closed?)\b|#(?:lifeway|journey)[-_]?(?:finish|done)\b)/im],
+  ["goodbye", /(?:^\s*(?:life-?way|journey)\s*:\s*(?:goodbye|good-?bye|farewell|bye)\b|#(?:lifeway|journey)[-_]?(?:goodbye|bye|farewell)\b)/im],
 ];
 
 /** {special, note} from an event: what ingest found, else a mark in its message/title. */
@@ -227,7 +227,7 @@ export function sliceProjects(dataset, [from, to]) {
       const events = p.events.filter((e) => e.t >= from && e.t <= to);
       if (!events.length) return null;
       const last = events[events.length - 1].t;
-      // A «Life-Way: finish» mark closes the repo no matter how recent it is.
+      // A «Journey: finish» mark closes the repo no matter how recent it is.
       const finish = withBranchCommits(events).find((e) => e.special === "finish") || null;
       return { ...p, events, finish, alive: !finish && (to - last) / DAY_MS <= ALIVE_DAYS };
     })

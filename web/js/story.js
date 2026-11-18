@@ -3,7 +3,7 @@
 // «Главное»: every repo's birth and every finished repo's merge back — the plot —
 // then the strongest of the rest (MRs, big diffs) up to `max`.
 // One person's way: every visit where they changed something.
-// Special moments (Life-Way: finish / goodbye) are always stops.
+// Special moments (Journey: finish / goodbye) are always stops.
 // Everything else lights up in the background as the trunk flies past.
 
 export function visitScore(v) {

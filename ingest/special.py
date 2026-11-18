@@ -1,9 +1,10 @@
 """Special moments marked by the team itself in a commit message or MR description:
 
-    Life-Way: finish                     → the film plays «Поздравляем! Проект завершён»
-    Life-Way: goodbye Спасибо всем!      → «Good bye, <author>» with that note
+    Journey: finish                     → the film plays «Поздравляем! Проект завершён»
+    Journey: goodbye Спасибо всем!      → «Good bye, <author>» with that note
 
-Short hashtags work too: #lifeway-finish, #lifeway-goodbye. Both patterns can be
+`Journey: finish` / `Journey: goodbye` work the same. Short hashtags too:
+#journey-finish, #journey-goodbye, …. Both patterns can be
 replaced in .env (LIFEWAY_FINISH_RE / LIFEWAY_GOODBYE_RE, Python regex; the text
 after the match on the same line becomes the note).
 """
@@ -11,8 +12,8 @@ from __future__ import annotations
 
 import re
 
-FINISH_RE = r"(?im)(?:^\s*life-?way\s*:\s*(?:finish|done|closed?)\b|#lifeway[-_]?(?:finish|done)\b)"
-GOODBYE_RE = r"(?im)(?:^\s*life-?way\s*:\s*(?:goodbye|good-?bye|farewell|bye)\b|#lifeway[-_]?(?:goodbye|bye|farewell)\b)"
+FINISH_RE = r"(?im)(?:^\s*(?:life-?way|journey)\s*:\s*(?:finish|done|closed?)\b|#(?:lifeway|journey)[-_]?(?:finish|done)\b)"
+GOODBYE_RE = r"(?im)(?:^\s*(?:life-?way|journey)\s*:\s*(?:goodbye|good-?bye|farewell|bye)\b|#(?:lifeway|journey)[-_]?(?:goodbye|bye|farewell)\b)"
 
 
 class SpecialMarks:

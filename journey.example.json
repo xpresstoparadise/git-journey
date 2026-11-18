@@ -1,7 +1,7 @@
 {
-  "_comment": "Copy to lifeway.json next to the program (or the repo root). Every key is optional. Secrets (GitLab token) stay in .env. URL parameters (?speed=2&mode=full&lang=en) still win over this file.",
+  "_comment": "Copy to journey.json next to the program (or the repo root). Every key is optional. Secrets (GitLab token) stay in .env. URL parameters (?speed=2&mode=full&lang=en) still win over this file.",
 
-  "title": "Our team · Git Life Way",
+  "title": "Our team · Git Journey",
   "subtitle": "",
   "language": "auto",
 
@@ -27,7 +27,7 @@
   },
 
   "ingest": {
-    "_comment": "groups: GitLab groups (with subgroups) instead of «all my projects». include/exclude: path patterns (GitLab: group/project, local: folder name). excludeAuthors: name patterns of bots etc. aliveDays: a repo without changes for longer is «finished».",
+    "_comment": "groups: GitLab groups (with subgroups) instead of 'all my projects'. include/exclude: path patterns (GitLab: group/project, local: folder name). excludeAuthors: name patterns of bots etc. aliveDays: a repo without changes for longer is 'finished'.",
     "groups": [],
     "include": [],
     "exclude": [],

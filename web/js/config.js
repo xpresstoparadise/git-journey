@@ -1,4 +1,4 @@
-// Film settings from lifeway.json (delivered as data/config.js → window.LIFEWAY_CONFIG).
+// Film settings from journey.json (delivered as data/config.js → window.LIFEWAY_CONFIG).
 // Every key is optional; URL parameters still win over the file. Node-safe.
 
 const DEFAULTS = {

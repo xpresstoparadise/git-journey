@@ -56,12 +56,12 @@ const DICT = {
     "cap.recSaved": "Recording saved", "cap.recMp4": "MP4 — Telegram plays it right away",
     "cap.recWebm": "WebM — for Telegram better use Chrome/Edge 126+ (MP4)",
     "cap.recCancelled": "Recording cancelled", "cap.recDenied": "the browser didn't allow capturing the tab",
-    "chapter.title": "Git Life Way", "chapter.sub": "{period} · {p} repos",
+    "chapter.title": "Git Journey", "chapter.sub": "{period} · {p} repos",
     // top bar & controls
     "source.repos": "{n} repos", "source.fetched": "exported {date}",
     "source.demoParam": "demo team · ?demo", "source.demo": "demo data · run fetch_local.py or fetch_gitlab.py",
     "person.all": "all people", "btn.pause": "Pause", "btn.continue": "Continue",
-    "period.all": "All time", "now": "now", "aria.world": "The team's git life way",
+    "period.all": "All time", "now": "now", "aria.world": "The team's git journey",
     "rec.screen": "Screen 16:9", "rec.screenHint": "the whole film, as on screen",
     "rec.telegram": "Telegram 9:16", "rec.telegramHint": "vertical, highlights 1.5×",
     "rec.square": "Square 1:1", "rec.squareHint": "post or chat, highlights 1.5×",
@@ -128,11 +128,11 @@ const DICT = {
     "cap.recSaved": "Запись сохранена", "cap.recMp4": "MP4 — Telegram покажет сразу",
     "cap.recWebm": "WebM — для Telegram лучше Chrome/Edge 126+ (MP4)",
     "cap.recCancelled": "Запись отменена", "cap.recDenied": "браузер не дал доступ к вкладке",
-    "chapter.title": "Git Life Way", "chapter.sub": "{period} · {p} репо",
+    "chapter.title": "Git Journey", "chapter.sub": "{period} · {p} репо",
     "source.repos": "{n} репо", "source.fetched": "выгрузка {date}",
     "source.demoParam": "демо-команда · ?demo", "source.demo": "демо-данные · запустите fetch_local.py или fetch_gitlab.py",
     "person.all": "все участники", "btn.pause": "Пауза", "btn.continue": "Дальше",
-    "period.all": "Весь срок", "now": "настоящее", "aria.world": "Git life way команды",
+    "period.all": "Весь срок", "now": "настоящее", "aria.world": "Путь команды в git",
     "rec.screen": "Экран 16:9", "rec.screenHint": "весь показ, как на экране",
     "rec.telegram": "Telegram 9:16", "rec.telegramHint": "вертикально, «Главное» 1.5×",
     "rec.square": "Квадрат 1:1", "rec.squareHint": "пост или чат, «Главное» 1.5×",
@@ -171,7 +171,7 @@ function detect() {
     const saved = localStorage.getItem("lifeway.lang");
     if (saved === "en" || saved === "ru") return saved;
   } catch { /* storage blocked — fall through */ }
-  const configured = window.LIFEWAY_CONFIG?.language; // lifeway.json, if not "auto"
+  const configured = window.LIFEWAY_CONFIG?.language; // journey.json, if not "auto"
   if (configured === "en" || configured === "ru") return configured;
   const nav = (navigator.languages?.[0] || navigator.language || "en").toLowerCase();
   const fallback = document.documentElement.dataset.defaultLang;

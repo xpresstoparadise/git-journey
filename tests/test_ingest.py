@@ -235,15 +235,17 @@ class MrCommitsTest(unittest.TestCase):
 class SpecialTest(unittest.TestCase):
     def test_marks(self):
         m = SpecialMarks()
-        self.assertEqual(m.detect("release 2.0\n\nLife-Way: finish Передали в эксплуатацию"), {"special": "finish", "note": "Передали в эксплуатацию"})
-        self.assertEqual(m.detect("docs #lifeway-goodbye"), {"special": "goodbye"})
+        self.assertEqual(m.detect("release 2.0\n\nJourney: finish Передали в эксплуатацию"), {"special": "finish", "note": "Передали в эксплуатацию"})
+        self.assertEqual(m.detect("docs #journey-goodbye"), {"special": "goodbye"})
         self.assertEqual(m.detect("lifeway: farewell — спасибо!"), {"special": "goodbye", "note": "спасибо!"})
         self.assertEqual(m.detect("fix lifeway parser"), {})
+        self.assertEqual(m.detect("ship it\n\nJourney: finish v2"), {"special": "finish", "note": "v2"})
+        self.assertEqual(m.detect("bye #journey-goodbye"), {"special": "goodbye"})
         self.assertEqual(SpecialMarks(r"(?i)\[done\]", r"(?i)\[bye\]").detect("x [bye] пока"), {"special": "goodbye", "note": "пока"})
 
     def test_special_survives_sampling(self):
         commits = [commit(f"c{i:03d}", f"2026-05-{1 + i % 28:02d}", f"c{i}", "A", "a@x") for i in range(100)]
-        commits[57]["message"] = "last one\n\nLife-Way: goodbye всем спасибо"
+        commits[57]["message"] = "last one\n\nJourney: goodbye всем спасибо"
         draft = collect_project(FakeGitLab(commits=commits), PROJECT, settings(max_commits=5))
         p = finalize(draft, AuthorBook())
         bye = [e for e in p["events"] if e.get("special") == "goodbye"]

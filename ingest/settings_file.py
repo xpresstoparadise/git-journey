@@ -1,4 +1,4 @@
-"""lifeway.json — one optional file for everything that isn't a secret.
+"""journey.json — one optional file for everything that isn't a secret.
 
     {
       "title": "Our team", "subtitle": "2026", "language": "auto",

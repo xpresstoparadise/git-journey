@@ -1,4 +1,4 @@
-// SVG scene: builds the life-way drawing from a layout once, then exposes
+// SVG scene: builds the journey drawing from a layout once, then exposes
 // small imperative handles (reveal trunk to h, grow a lane, pop a node, …).
 // Nothing in here knows about timing — that is the cinema's job.
 

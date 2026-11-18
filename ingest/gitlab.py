@@ -13,7 +13,7 @@ import urllib.parse
 import urllib.request
 from typing import Any, Protocol
 
-USER_AGENT = "git-life-way/0.2"
+USER_AGENT = "git-journey/0.2"
 PROXY_VARS = ("HTTP_PROXY", "HTTPS_PROXY", "http_proxy", "https_proxy", "ALL_PROXY", "all_proxy")
 
 

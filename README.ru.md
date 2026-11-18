@@ -1,4 +1,4 @@
-# Git Life Way
+# Git Journey
 
 [English](README.md) · **Русский**
 
@@ -7,7 +7,9 @@
 бегущая по пути звезда разгорается и в конце гаснет. В финале — вся карта года и
 вклад каждого.
 
-![Ветки репозиториев и MR, карточка проекта](docs/mr-branches.png)
+<a href="docs/demo.webm?raw=true"><img src="docs/poster.jpg" alt="Git Journey — демо на 30 секунд" width="100%"></a>
+
+▶ **[Смотреть демо (30 секунд)](docs/demo.webm?raw=true)**
 
 
 > Видео: откройте `/?demo`, нажмите «Запись» → «Экран 16:9» или «Telegram 9:16» —
@@ -61,7 +63,7 @@
 Скачайте файл под свою систему со страницы релизов и положите в пустую папку:
 
 ```
-git-life-way.exe      ← двойной клик
+git-journey.exe      ← двойной клик
 repos/                ← сюда клоны репозиториев (создастся при первом запуске)
 photos/               ← сюда фото людей (необязательно)
 ```
@@ -70,10 +72,10 @@ photos/               ← сюда фото людей (необязательн
 откроется браузер. Нужен установленный `git`.
 
 ```bash
-git-life-way                                  # repos/ → фильм в браузере
-git-life-way local D:/clones --period 2025-2026
-git-life-way gitlab                           # из GitLab по .env
-git-life-way serve --lan                      # показать по сети последний собранный фильм
+git-journey                                  # repos/ → фильм в браузере
+git-journey local D:/clones --period 2025-2026
+git-journey gitlab                           # из GitLab по .env
+git-journey serve --lan                      # показать по сети последний собранный фильм
 ```
 
 ### Из исходников: локальные клоны
@@ -90,7 +92,7 @@ start-local.cmd / start-local.sh      # то же двойным кликом
 * **MR — по merge-коммитам**: GitLab пишет в них «See merge request group/proj!12»,
   GitHub — «Merge pull request #12»; коммиты ветки MR — всё между родителями
   merge-коммита. Squash-мерджи видны как обычные коммиты;
-* рождение репо — по первому коммиту; метки `Life-Way:` — из полного текста;
+* рождение репо — по первому коммиту; метки `Journey:` — из полного текста;
 * ссылки на коммиты, если `origin` клона указывает на GitLab/GitHub.
 
 ### Из исходников: GitLab
@@ -117,13 +119,13 @@ UI покажет демо-данные; `?demo` — демо-команда в�
 Firewall (Windows, от админа), если нужен доступ по LAN:
 
 ```bat
-netsh advfirewall firewall add rule name="Git Life Way 8766" dir=in action=allow protocol=TCP localport=8766
+netsh advfirewall firewall add rule name="Git Journey 8766" dir=in action=allow protocol=TCP localport=8766
 ```
 
-## Настройки — `lifeway.json`
+## Настройки — `journey.json`
 
 Один необязательный файл рядом с программой (или в корне репо) для всего, что не секрет;
-шаблон — `lifeway.example.json`. Любой ключ можно не указывать — будет значение по
+шаблон — `journey.example.json`. Любой ключ можно не указывать — будет значение по
 умолчанию; параметры URL (`?speed=2&mode=full&lang=ru`) важнее файла.
 
 | Секция | Ключи |
@@ -139,7 +141,7 @@ netsh advfirewall firewall add rule name="Git Life Way 8766" dir=in action=allow
 ## Язык
 
 Интерфейс на английском и русском: по умолчанию — язык браузера, дальше `language` в
-`lifeway.json`, `?lang=en|ru` или кнопка EN/RU в шапке (запоминается). Демо-команда тоже
+`journey.json`, `?lang=en|ru` или кнопка EN/RU в шапке (запоминается). Демо-команда тоже
 переключается.
 
 ## Фото участников
@@ -199,13 +201,13 @@ URL-параметры: `?period=2026&speed=2&mode=full&person=Имя`, `?demo` 
 или описании MR — фильм остановится и сыграет сцену:
 
 ```
-Life-Way: finish  Передали в эксплуатацию     → «Поздравляем!», конфетти, команда проекта;
+Journey: finish  Передали в эксплуатацию     → «Поздравляем!», конфетти, команда проекта;
                                                  репо закрывается и вливается в ствол
-Life-Way: goodbye Спасибо, команда!            → «Good bye, <автор>», портрет, итоги, его путь на карте
+Journey: goodbye Спасибо, команда!            → «Good bye, <автор>», портрет, итоги, его путь на карте
 ```
 
 Текст после метки — подпись в сцене (необязательно). Короткие формы:
-`#lifeway-finish`, `#lifeway-goodbye`. Свои шаблоны — `LIFEWAY_FINISH_RE` /
+`#journey-finish`, `#journey-goodbye`. Свои шаблоны — `LIFEWAY_FINISH_RE` /
 `LIFEWAY_GOODBYE_RE` в `.env` (регулярные выражения Python). Такие коммиты никогда
 не выпадают при прореживании. Посмотреть: `/?demo`.
 
@@ -232,7 +234,7 @@ Ingest склеивает написания автоматически: оди�
 (`Elena Morozova` ↔ `Елена Морозова`), задаётся в `web/data/authors.json` — формат
 в `web/data/authors.example.json`. UI читает этот файл на лету, перевыгрузка не нужна.
 
-`python fetch_gitlab.py --suggest-authors` (или `git-life-way suggest-authors`)
+`python fetch_gitlab.py --suggest-authors` (или `git-journey suggest-authors`)
 подсказывает пары по транслитерации и перечисляет логины без полного имени.
 
 ## Устройство
@@ -253,7 +255,7 @@ ingest/
   photos.py            фото из папки photos/ (важнее GitLab)
   cache.py             догрузка: неизменённые репо из прошлой выгрузки
   suggest.py           подсказки для authors.json
-  special.py           метки Life-Way: finish / goodbye
+  special.py           метки Journey: finish / goodbye
   export.py            запись JSON и <script> для UI
 serve.py               статика web/ (no-store, верный MIME для .js)
 web/

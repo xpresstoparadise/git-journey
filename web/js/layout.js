@@ -1,4 +1,4 @@
-// Geometry of the life way. Pure: projects + period in, coordinates out.
+// Geometry of the journey. Pure: projects + period in, coordinates out.
 //
 // Time runs bottom → top. Work is done in "height" units h (0 = period start,
 // grows with time) and converted to SVG y only at the very end.

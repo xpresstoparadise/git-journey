@@ -1,4 +1,4 @@
-"""Life Way from local clones — no GitLab needed, just `git`.
+"""Git Journey from local clones — no GitLab needed, just `git`.
 
 Every git repository directly inside the folder (or the folder itself) becomes a
 project. What plain git history gives:
@@ -8,7 +8,7 @@ project. What plain git history gives:
   «See merge request group/proj!12» into them (GitHub: «Merge pull request #12»),
   the MR's own commits are everything between the merge's two parents.
   Squash merges look like ordinary commits;
-* repo birth from the root commit; Life-Way marks from full commit messages;
+* repo birth from the root commit; Journey marks from full commit messages;
 * links back to GitLab when `origin` points at it.
 
 The result has the same shape as the GitLab ingest (Draft → finalize).
@@ -127,7 +127,7 @@ def mr_from_merge(c: dict, seq: int) -> tuple[int, str]:
     """(iid, title) from a merge commit message."""
     iid = next((int(m.group(1)) for rx in MR_IID if (m := rx.search(c["message"]))), seq)
     lines = [ln.strip() for ln in c["message"].split("\n")]
-    body = [ln for ln in lines[1:] if ln and not re.match(r"^(See merge request|Closes|Fixes|Resolves|Co-authored-by|Signed-off-by|Life-?Way\s*:)", ln, re.I)]
+    body = [ln for ln in lines[1:] if ln and not re.match(r"^(See merge request|Closes|Fixes|Resolves|Co-authored-by|Signed-off-by|Life-?Way\s*:|Journey\s*:)", ln, re.I)]
     if body:
         return iid, body[0][:140]
     m = MR_BRANCH.match(lines[0]) or re.search(r"from \S+/(\S+)", lines[0])

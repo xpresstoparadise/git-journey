@@ -51,7 +51,7 @@ class LocalIngestTest(unittest.TestCase):
         sh(alpha, "checkout", "-q", "main")
         sh(alpha, "merge", "-q", "--no-ff", "feature/search", "-m", "Merge branch 'feature/search' into 'main'",
            "-m", "Full-text search", "-m", "See merge request team/alpha!7", date="2026-01-28")
-        commit(alpha, "2026-03-02", "handover\n\nLife-Way: goodbye спасибо!", who=("bob", "bob@team.dev"))
+        commit(alpha, "2026-03-02", "handover\n\nJourney: goodbye спасибо!", who=("bob", "bob@team.dev"))
         sh(alpha, "remote", "add", "origin", "git@gitlab.example.com:team/alpha.git")
 
     def tearDown(self):

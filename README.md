@@ -1,4 +1,4 @@
-# Git Life Way
+# Git Journey
 
 **English** · [Русский](README.ru.md)
 
@@ -7,7 +7,9 @@ branch off it, the camera stops at every step the team took, and a star runs the
 way — it kindles, burns like a sparkler, and goes out at the end. The finale is a map of
 the year and what everyone put into it.
 
-![Repository branches, merge requests and the project card](docs/mr-branches.png)
+<a href="docs/demo.webm?raw=true"><img src="docs/poster.jpg" alt="Git Journey — 30-second demo" width="100%"></a>
+
+▶ **[Watch the 30-second demo](docs/demo.webm?raw=true)**
 
 
 > Video: open `/?demo`, press **Record** → 16:9 or Telegram 9:16 — you get an MP4 of the demo team.
@@ -19,7 +21,7 @@ part gets lost there — every dot is somebody's morning, a decision, a night be
 release. This film tells the same story as a journey.
 
 **The trunk is the team's shared time.** It grows bottom-up, from the start of the period
-to «настоящее» — *now*. Everything that happens in the repositories happens against it.
+to *now*. Everything that happens in the repositories happens against it.
 
 **Repositories are roads leaving the trunk.** A repository branches off at its first change
 and then runs alongside. Living projects keep running in parallel all the way to *now*:
@@ -39,11 +41,11 @@ longer tail. Near *now* it burns like a sparkler, in every direction. And then i
 of it twinkles: every dot shines brighter the more was put into it. The road is walked,
 the trace stays — that's the point.
 
-**«Поздравляем!» — congratulations.** A project brought to its end is not a line vanishing
+**Congratulations!** A project brought to its end is not a line vanishing
 from a list but a celebration: confetti, the names of everyone who built it, and the branch
 solemnly flows back into the trunk.
 
-**«Good bye».** People leave — to other teams, to other lives. Their road isn't erased: it
+**Good bye.** People leave — to other teams, to other lives. Their road isn't erased: it
 stays on the map, lit up from end to end. The farewell takes its time: a portrait, the
 person's own words and fifteen seconds of quiet. Someone who walked this road with the
 team deserves more than a line in a log. People leave their farewell themselves — with
@@ -60,7 +62,7 @@ click away.
 Download the file for your OS from the Releases page and put it into an empty folder:
 
 ```
-git-life-way.exe      ← double-click
+git-journey.exe      ← double-click
 repos/                ← your clones go here (created on first run)
 photos/               ← people's photos (optional)
 ```
@@ -69,10 +71,10 @@ Put clones (`git clone …`) into `repos/` and run the program: it builds the da
 the browser. Requires `git`.
 
 ```bash
-git-life-way                                  # repos/ → film in the browser
-git-life-way local D:/clones --period 2025-2026
-git-life-way gitlab                           # from GitLab, settings in .env
-git-life-way serve --lan                      # show the last built film on the network
+git-journey                                  # repos/ → film in the browser
+git-journey local D:/clones --period 2025-2026
+git-journey gitlab                           # from GitLab, settings in .env
+git-journey serve --lan                      # show the last built film on the network
 ```
 
 ### From source: local clones
@@ -89,7 +91,7 @@ What plain git history gives:
 * **merge requests from merge commits**: GitLab writes “See merge request group/proj!12”
   into them, GitHub “Merge pull request #12”; the MR's own commits are everything between
   the merge's two parents. Squash merges show up as ordinary commits;
-* repository birth from the root commit; `Life-Way:` marks from full commit messages;
+* repository birth from the root commit; `Journey:` marks from full commit messages;
 * links to commits when the clone's `origin` points at GitLab/GitHub.
 
 ### From source: GitLab
@@ -113,10 +115,10 @@ a fresh export every 5 minutes and offers to reload. Scheduled refresh: `tools/r
 For every MR the export fetches its commits (`/merge_requests/:iid/commits`) — in the film
 they travel along the MR's branch, not along the main line.
 
-## Configuration — `lifeway.json`
+## Configuration — `journey.json`
 
 One optional file next to the program (or in the repo root) for everything that isn't a
-secret; copy `lifeway.example.json`. Every key is optional, missing ones use defaults, and
+secret; copy `journey.example.json`. Every key is optional, missing ones use defaults, and
 URL parameters (`?speed=2&mode=full&lang=en`) still win.
 
 | Section | Keys |
@@ -132,7 +134,7 @@ Film settings reach the page on every `serve` / fetch, no re-export needed. Secr
 ## Language
 
 The interface speaks English and Russian: browser language by default, `language` in
-`lifeway.json`, `?lang=en|ru`, or the EN/RU button in the top bar (remembered). The demo
+`journey.json`, `?lang=en|ru`, or the EN/RU button in the top bar (remembered). The demo
 team switches language too.
 
 ## Photos
@@ -186,19 +188,19 @@ stops by itself after the finale; earlier — `Esc` or the button again.
 * Otherwise **WebM** — Telegram accepts it as a file.
 * Resolution = the stage's pixels on screen: a taller monitor gives a sharper vertical video.
 
-## Special moments: «Поздравляем!» and «Good bye»
+## Special moments: “Congratulations!” and “Good bye”
 
 The team marks its last commit (or MR) with a line in the commit message or MR
 description — the film stops and plays a scene:
 
 ```
-Life-Way: finish  Handed over to production    → «Поздравляем!», confetti, the project's crew;
+Journey: finish  Handed over to production    → “Congratulations!”, confetti, the project's crew;
                                                   the repo closes and flows into the trunk
-Life-Way: goodbye Thank you, team!              → «Good bye, <author>», portrait, totals, their road on the map
+Journey: goodbye Thank you, team!              → “Good bye, <author>”, portrait, totals, their road on the map
 ```
 
-The text after the mark is the scene's caption (optional). Short forms: `#lifeway-finish`,
-`#lifeway-goodbye`. Your own patterns: `LIFEWAY_FINISH_RE` / `LIFEWAY_GOODBYE_RE` in `.env`
+The text after the mark is the scene's caption (optional). Short forms: `#journey-finish`,
+`#journey-goodbye`. Your own patterns: `LIFEWAY_FINISH_RE` / `LIFEWAY_GOODBYE_RE` in `.env`
 (Python regular expressions). Marked commits are never sampled away. See it: `/?demo`.
 
 If there are several marks, the scene plays **once — for the latest one**:
@@ -213,18 +215,18 @@ simply by adding a later one.
 ## One person's road
 
 The **Person** list in the top bar, or `?person=Name`: stops only where they
-changed something, everything else dimmed. Only their own goodbye plays, and «Поздравляем!»
+changed something, everything else dimmed. Only their own goodbye plays, and “Congratulations!”
 only for projects they worked on. The finale opens their card: lines of code, commits, MRs,
 repositories and their share of the team's work.
 
 ## Authors: one person, one name
 
 Spellings are merged automatically: same commit e-mail, same login, `Lena_Frost` =
-`Lena Frost`. What can't be merged that way (`Elena Morozova` ↔ `Елена Морозова`) goes into
+`Lena Frost`. What can't be merged that way (a Latin and a Cyrillic spelling of the same name) goes into
 `web/data/authors.json` — format in `web/data/authors.example.json`. The UI reads it live,
 no re-export needed.
 
-`python fetch_gitlab.py --suggest-authors` (or `git-life-way suggest-authors`) suggests
+`python fetch_gitlab.py --suggest-authors` (or `git-journey suggest-authors`) suggests
 pairs by transliteration and lists logins without a full name.
 
 ## How it's built
@@ -245,8 +247,8 @@ ingest/
   photos.py            photos from the photos/ folder (win over GitLab)
   cache.py             incremental refresh: unchanged repos from the previous export
   suggest.py           hints for authors.json
-  special.py           Life-Way: finish / goodbye marks
-  settings_file.py     lifeway.json: defaults, filters, bots, the page's config.js
+  special.py           Journey: finish / goodbye marks
+  settings_file.py     journey.json: defaults, filters, bots, the page's config.js
   export.py            JSON and <script> for the UI
 serve.py               static web/ (no-store, correct MIME for .js)
 web/
@@ -261,7 +263,7 @@ web/
   js/present.js        cinema mode, recording: tab capture → stage crop → MP4/WebM
   js/hud.js            card, titles, timeline, tooltip, farewell
   js/i18n.js           English / Russian strings                            (pure)
-  js/config.js         film settings from lifeway.json                      (pure)
+  js/config.js         film settings from journey.json                      (pure)
   js/main.js           wiring, controls, keyboard
 tests/                 python -m unittest discover tests · node --test tests/
 .github/workflows/     tests + Windows/Linux/macOS binaries (tag v* → release)

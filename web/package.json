@@ -1,5 +1,5 @@
 {
-  "name": "git-life-way-web",
+  "name": "git-journey-web",
   "private": true,
   "type": "module",
   "scripts": { "test": "node --test ../tests/" }

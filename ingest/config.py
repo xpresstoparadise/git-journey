@@ -90,6 +90,14 @@ def read_env_file(path: Path) -> dict[str, str]:
     return env
 
 
+def config_file() -> Path:
+    """The settings file: journey.json, or its older name lifeway.json — journey.json first."""
+    for name in ("journey.json", "lifeway.json"):
+        if (REPO_ROOT / name).exists():
+            return REPO_ROOT / name
+    return REPO_ROOT / "journey.json"
+
+
 def find_env_file() -> Path | None:
     return next((p for p in ENV_CANDIDATES if p.exists()), None)
 
@@ -117,5 +125,5 @@ def load_settings(overrides: dict[str, str | None] | None = None) -> Settings:
         env_file=env_file,
         photos_dir=Path(pick("LIFEWAY_PHOTOS", str(REPO_ROOT / "photos"))),
         repos_dir=Path(pick("LIFEWAY_REPOS", str(REPO_ROOT / "repos"))),
-        file=load_file(Path(pick("LIFEWAY_CONFIG", str(REPO_ROOT / "lifeway.json")))),
+        file=load_file(Path(pick("LIFEWAY_CONFIG", str(config_file())))),
     )

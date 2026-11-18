@@ -263,6 +263,14 @@ function boot(dataset, live) {
     const row = rowAt(timeAt(ev).t);
     cut(() => start({ instant: false, fromRow: row }));
   });
+  // Scripting hook (trailers, demos): seek to a share of the period, 0…1.
+  window.__journey = {
+    seek(f) {
+      if (!state.L) return;
+      const [a, b] = hud.timelineBounds;
+      cut(() => start({ instant: false, fromRow: rowAt(a + clamp(f, 0, 1) * (b - a)) }));
+    },
+  };
 
   // ---- finale: one author's way ---------------------------------------------------
   hud.onAuthor = (name) => {
@@ -367,7 +375,7 @@ function boot(dataset, live) {
     try {
       recording = { restore, stop: null };
       const rec = await startRecording({
-        fileName: `life-way-${state.period}-${key}.webm`,
+        fileName: `journey-${state.period}-${key}.webm`,
         cropEl: $(".stage"),
         preset,
         onEnded: () => stopRecording({ saved: false }),

@@ -1,4 +1,4 @@
-"""Life Way ingest: GitLab or local clones → the dataset the UI plays."""
+"""Git Journey ingest: GitLab or local clones → the dataset the UI plays."""
 import sys
 
 # Windows consoles and CI pipes default to a legacy code page (cp1252/cp866) and

@@ -1,4 +1,4 @@
-"""Life Way from local clones — no GitLab, no token, just git.
+"""Git Journey from local clones — no GitLab, no token, just git.
 
     repos/    put your clones here (git clone …), as many as you like
     photos/   people's photos: «Имя Фамилия.jpg», «login.png» or «name@corp.example.webp»

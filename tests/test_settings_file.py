@@ -1,4 +1,4 @@
-"""lifeway.json: defaults, filters, bot removal, the page's config.js."""
+"""journey.json: defaults, filters, bot removal, the page's config.js."""
 from __future__ import annotations
 
 import json
@@ -15,7 +15,7 @@ from ingest.settings_file import drop_authors, load_file, wants_project, write_u
 class SettingsFileTest(unittest.TestCase):
     def test_defaults_and_partial_override(self):
         with tempfile.TemporaryDirectory() as tmp:
-            p = Path(tmp) / "lifeway.json"
+            p = Path(tmp) / "journey.json"
             p.write_text(json.dumps({"title": "Team", "_comment": "x", "film": {"speed": 2}, "ranking": {"mr": 5}}), encoding="utf-8")
             cfg = load_file(p)
         self.assertEqual(cfg["title"], "Team")
@@ -27,7 +27,7 @@ class SettingsFileTest(unittest.TestCase):
 
     def test_broken_file_falls_back(self):
         with tempfile.TemporaryDirectory() as tmp:
-            p = Path(tmp) / "lifeway.json"
+            p = Path(tmp) / "journey.json"
             p.write_text("{ not json", encoding="utf-8")
             self.assertEqual(load_file(p)["film"]["highlightStops"], 26)
 
