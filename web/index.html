@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Git Life Way</title>
+  <meta name="color-scheme" content="dark" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23131209'/%3E%3Cpath d='M12 27V5M12 18c0-5 8-4 8-9M20 9v0' stroke='%233dd6c6' stroke-width='3' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='20' cy='8' r='3' fill='%23f0a05a'/%3E%3C/svg%3E" />
+  <link rel="preload" href="fonts/manrope-cyrillic.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="css/fonts.css" />
+  <link rel="stylesheet" href="css/app.css" />
+</head>
+<body>
+  <div class="stage">
+    <div class="viewport" id="viewport">
+      <div class="canvas" id="canvas"></div>
+    </div>
+    <div class="vignette" aria-hidden="true"></div>
+    <div class="grain" aria-hidden="true"></div>
+    <div class="letterbox top" aria-hidden="true"></div>
+    <div class="letterbox bottom" aria-hidden="true"></div>
+    <div class="chapter" id="chapter" aria-hidden="true"></div>
+    <canvas class="fx" id="fx" aria-hidden="true"></canvas>
+    <div class="farewell" id="farewell" aria-live="polite"></div>
+
+    <header class="topbar">
+      <div class="brand">
+        <svg class="mark" viewBox="0 0 32 32" aria-hidden="true">
+          <path d="M11 29V3" class="m-trunk" />
+          <path d="M11 20c0-6 10-5 10-11v-6" class="m-lane" />
+          <circle cx="21" cy="12" r="3.2" class="m-dot" />
+          <circle cx="11" cy="24" r="3.2" class="m-dot2" />
+        </svg>
+        <div>
+          <h1>Git Life Way</h1>
+          <p id="source">…</p>
+        </div>
+      </div>
+      <div class="controls">
+        <label class="field">
+          <span>Период</span>
+          <select id="period" aria-label="Период"></select>
+        </label>
+        <label class="field person-field">
+          <span>Участник</span>
+          <select id="person" aria-label="Чей путь показать"><option value="">все</option></select>
+        </label>
+        <div class="seg" role="group" aria-label="Версия показа">
+          <button type="button" data-mode="highlights" aria-pressed="true" title="Только ключевые моменты, ~1.5 минуты (M)">Главное</button>
+          <button type="button" data-mode="full" aria-pressed="false" title="Каждый визит в каждый репо (M)">Полностью</button>
+        </div>
+        <div class="seg" role="group" aria-label="Скорость">
+          <button type="button" data-speed="1" aria-pressed="true" title="Скорость 1× (клавиша 1)">1×</button>
+          <button type="button" data-speed="2" aria-pressed="false" title="Скорость 2× (клавиша 2)">2×</button>
+          <button type="button" data-speed="4" aria-pressed="false" title="Скорость 4× (клавиша 3)">4×</button>
+        </div>
+        <button type="button" class="btn icon-btn" id="pause" aria-pressed="false" title="Пауза / дальше (пробел)">
+          <svg viewBox="0 0 16 16" aria-hidden="true" class="i-pause"><rect x="3.5" y="3" width="3" height="10" rx="1" /><rect x="9.5" y="3" width="3" height="10" rx="1" /></svg>
+          <svg viewBox="0 0 16 16" aria-hidden="true" class="i-play"><path d="M5 3.2v9.6a.6.6 0 0 0 .9.5l7.6-4.8a.6.6 0 0 0 0-1L5.9 2.7a.6.6 0 0 0-.9.5z" /></svg>
+          <span>Пауза</span>
+        </button>
+        <button type="button" class="btn" id="skip" title="Сразу к сводке (F)">К финалу</button>
+        <button type="button" class="btn icon-btn" id="present" title="Презентация: полный экран и кинорамка (P)">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 5V3a1 1 0 0 1 1-1h2M11 2h2a1 1 0 0 1 1 1v2M14 11v2a1 1 0 0 1-1 1h-2M5 14H3a1 1 0 0 1-1-1v-2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          <span>Кино</span>
+        </button>
+        <div class="rec-wrap">
+          <button type="button" class="btn icon-btn rec" id="record" aria-pressed="false" aria-haspopup="menu" aria-expanded="false" title="Записать показ в видео: 16:9, Telegram 9:16, квадрат">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="4.5" /></svg>
+            <span>Запись</span>
+          </button>
+          <div class="rec-menu" id="rec-menu" role="menu" hidden></div>
+        </div>
+        <button type="button" class="btn primary" id="replay" title="Проиграть снова (R)">Сначала</button>
+      </div>
+    </header>
+
+    <aside class="card" id="card" aria-live="polite"></aside>
+
+    <footer class="dock">
+      <div class="clock" id="clock" aria-live="off"></div>
+      <div class="dock-main">
+        <div class="caption" id="caption" aria-live="polite"></div>
+        <div class="timeline" id="timeline" aria-hidden="true"></div>
+      </div>
+      <ul class="legend" aria-label="Обозначения">
+        <li><i class="lg-trunk"></i>ствол GitLab</li>
+        <li><i class="lg-born"></i>рождение</li>
+        <li><i class="lg-commit"></i>коммит (цвет репо)</li>
+        <li><i class="lg-mr"></i>MR → main</li>
+      </ul>
+    </footer>
+
+    <div class="tooltip" id="tooltip" role="tooltip"></div>
+    <div class="fresh" id="fresh" role="status"><span>Есть свежая выгрузка из GitLab</span><button type="button" class="btn primary">Обновить</button></div>
+    <div class="cut" id="cut" aria-hidden="true"></div>
+    <p class="kbd-hint">Пробел — пауза · клик по шкале — перемотка · M — главное/всё · P — кино · F — финал · R — сначала</p>
+  </div>
+
+  <!-- Generated by fetch_gitlab.py; the UI falls back to demo data when it is missing. -->
+  <script src="data/gitlab_raw.js" onerror="void 0"></script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

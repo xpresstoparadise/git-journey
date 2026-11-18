@@ -1,0 +1,4 @@
+{
+  "_comment": "Copy to authors.json in this folder. One person = one key; list every spelling, GitLab username or commit e-mail. Used by fetch_gitlab.py and, live, by the UI.",
+  "Имя Фамилия": ["Familiya Imya", "login", "name@company.ru"]
+}

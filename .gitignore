@@ -1,0 +1,17 @@
+.venv/
+.idea/
+__pycache__/
+*.pyc
+.env
+**/.env
+prototype/.env
+web/data/gitlab_raw.json
+node_modules/
+*.log
+.DS_Store
+Thumbs.db
+web/data/avatars/
+repos/*
+!repos/README.md
+photos/*
+!photos/README.md

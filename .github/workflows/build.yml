@@ -1,0 +1,95 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write   # attach binaries to a release on tags
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Python tests
+        run: python -m unittest discover -s tests -v
+      - name: JS tests
+        run: node --test tests/
+
+  binary:
+    needs: test
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            asset: git-life-way-windows-x64.exe
+            sep: ";"
+          - os: ubuntu-22.04
+            asset: git-life-way-linux-x64
+            sep: ":"
+          - os: macos-latest
+            asset: git-life-way-macos-arm64
+            sep: ":"
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install PyInstaller
+        run: python -m pip install pyinstaller==6.10.0
+      - name: Keep personal data out of the bundle
+        run: rm -rf web/data/gitlab_raw.* web/data/authors.json web/data/avatars
+      - name: Build
+        run: >
+          pyinstaller --onefile --noconfirm --clean
+          --name git-life-way
+          --add-data "web${{ matrix.sep }}web"
+          lifeway.py
+      - name: Smoke test
+        run: |
+          exe=dist/git-life-way; [ -f dist/git-life-way.exe ] && exe=dist/git-life-way.exe
+          "$exe" --version
+          mkdir -p smoke/repos/demo && cd smoke/repos/demo
+          git init -q -b main
+          git -c user.name=CI -c user.email=ci@example.com commit -q --allow-empty -m "hello" --date="$(date +%Y)-01-15T10:00:00"
+          cd ../..
+          cp "../$exe" ./
+          "./$(basename "$exe")" local --period "$(date +%Y)" --no-serve
+          test -f web/data/gitlab_raw.js && test -f web/index.html
+      - name: Rename
+        run: |
+          src=dist/git-life-way; [ -f dist/git-life-way.exe ] && src=dist/git-life-way.exe
+          mv "$src" "dist/${{ matrix.asset }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset }}
+          path: dist/${{ matrix.asset }}
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: binary
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true
