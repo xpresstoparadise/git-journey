@@ -6,6 +6,7 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+from .settings_file import load_file
 from .special import FINISH_RE, GOODBYE_RE
 
 # Source checkout: the repo root. Standalone binary: the folder next to the executable
@@ -75,6 +76,7 @@ class Settings:
     env_file: Path | None
     photos_dir: Path
     repos_dir: Path
+    file: dict  # lifeway.json merged with defaults (see settings_file.py)
 
 
 def read_env_file(path: Path) -> dict[str, str]:
@@ -115,4 +117,5 @@ def load_settings(overrides: dict[str, str | None] | None = None) -> Settings:
         env_file=env_file,
         photos_dir=Path(pick("LIFEWAY_PHOTOS", str(REPO_ROOT / "photos"))),
         repos_dir=Path(pick("LIFEWAY_REPOS", str(REPO_ROOT / "repos"))),
+        file=load_file(Path(pick("LIFEWAY_CONFIG", str(REPO_ROOT / "lifeway.json")))),
     )

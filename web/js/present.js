@@ -1,3 +1,5 @@
+import { t } from "./i18n.js";
+
 // Presentation mode (fullscreen, letterbox, HUD out of the way) and recording the
 // show to a .webm through the browser's own tab capture. No dependencies.
 
@@ -29,9 +31,9 @@ export function createPresenter({ onChange } = {}) {
 
 /** Recording formats. `frame` reshapes the stage; `mode`/`speed` override playback. */
 export const RECORD_PRESETS = {
-  screen: { label: "Экран 16:9", hint: "весь показ, как на экране", frame: null, maxW: 1920, bitrate: 12_000_000 },
-  telegram: { label: "Telegram 9:16", hint: "вертикально, «Главное» 1.5×, ~1 мин", frame: "9:16", mode: "highlights", speed: 1.5, maxW: 1080, bitrate: 8_000_000 },
-  square: { label: "Квадрат 1:1", hint: "пост или чат, «Главное» 1.5×", frame: "1:1", mode: "highlights", speed: 1.5, maxW: 1080, bitrate: 8_000_000 },
+  screen: { label: t("rec.screen"), hint: t("rec.screenHint"), frame: null, maxW: 1920, bitrate: 12_000_000 },
+  telegram: { label: t("rec.telegram"), hint: t("rec.telegramHint"), frame: "9:16", mode: "highlights", speed: 1.5, maxW: 1080, bitrate: 8_000_000 },
+  square: { label: t("rec.square"), hint: t("rec.squareHint"), frame: "1:1", mode: "highlights", speed: 1.5, maxW: 1080, bitrate: 8_000_000 },
 };
 
 /** MP4 with H.264 first: Telegram and phones play it inline. A VP9-in-MP4 would

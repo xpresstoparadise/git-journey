@@ -1102,3 +1102,6 @@ body.present .farewell { top: 50%; }
 .card .now-av.swap { animation: now-swap 520ms var(--spring) both; }
 @keyframes now-swap { from { transform: scale(0.6); opacity: 0; } }
 .card .card-head + .desc, .card .card-head + .facts, .card .card-head + .stats { margin-top: 18px; }
+.lang-btn { min-width: 44px; justify-content: center; padding: 0 10px; font: 700 12px var(--mono); letter-spacing: 0.06em; color: var(--muted); }
+.lang-btn:hover { color: var(--text); }
+body.no-grain .grain { display: none; }

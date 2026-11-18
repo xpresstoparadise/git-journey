@@ -9,13 +9,8 @@ the year and what everyone put into it.
 
 ![Repository branches, merge requests and the project card](docs/mr-branches.png)
 
-| | |
-|---|---|
-| ![The sparkler at «now»](docs/sparkler.png) | ![Good bye](docs/goodbye.png) |
-| ![Finale: the map of the year and the team's contribution](docs/finale.png) | ![Vertical video for Telegram](docs/telegram-9x16.png) |
 
-> Video: open `/?demo`, press «Запись» (Record) → 16:9 or Telegram 9:16 — you get an MP4
-> of the demo team. The interface itself is in Russian.
+> Video: open `/?demo`, press **Record** → 16:9 or Telegram 9:16 — you get an MP4 of the demo team.
 
 ## Why
 
@@ -118,6 +113,28 @@ a fresh export every 5 minutes and offers to reload. Scheduled refresh: `tools/r
 For every MR the export fetches its commits (`/merge_requests/:iid/commits`) — in the film
 they travel along the MR's branch, not along the main line.
 
+## Configuration — `lifeway.json`
+
+One optional file next to the program (or in the repo root) for everything that isn't a
+secret; copy `lifeway.example.json`. Every key is optional, missing ones use defaults, and
+URL parameters (`?speed=2&mode=full&lang=en`) still win.
+
+| Section | Keys |
+|---|---|
+| top level | `title`, `subtitle`, `language` (`auto` / `en` / `ru`) |
+| `film` | `mode` (`highlights` / `full`), `speed`, `highlightStops`, `cardMinSeconds`, `farewellSeconds`, `sparks`, `sparkler`, `grain`, `confetti`, `accent` |
+| `ranking` | points per `commit`, `mr`, `newRepo` |
+| `ingest` | `groups` (GitLab groups instead of “all my projects”), `include` / `exclude` (path patterns), `excludeAuthors` (bots), `aliveDays`, `maxMrCommits` |
+
+Film settings reach the page on every `serve` / fetch, no re-export needed. Secrets
+(`GITLAB_TOKEN`) stay in `.env`.
+
+## Language
+
+The interface speaks English and Russian: browser language by default, `language` in
+`lifeway.json`, `?lang=en|ru`, or the EN/RU button in the top bar (remembered). The demo
+team switches language too.
+
 ## Photos
 
 Two sources, they work together:
@@ -137,10 +154,10 @@ recording). No photo — initials.
 | Key / gesture | Action |
 |---|---|
 | Space | pause / continue |
-| M | «Главное» (highlights, ~1.5 min) ↔ «Полностью» (every visit) |
+| M | **Highlights** (~1.5 min) ↔ **Full** (every visit) |
 | click on the bottom timeline | jump to that week |
 | P | cinema mode: fullscreen, letterbox, subtitles |
-| «Запись» (Record) button | choose a format → the film from the start → a video file |
+| **Record** button | choose a format → the film from the start → a video file |
 | 1 · 2 · 3 | speed 1× · 2× · 4× |
 | F / End | straight to the finale |
 | R | from the start |
@@ -152,7 +169,7 @@ URL parameters: `?period=2026&speed=2&mode=full&person=Name`, `?demo` — the de
 
 ## Recording video
 
-«Запись» → format:
+**Record** → format:
 
 | Format | For | What is recorded |
 |---|---|---|
@@ -195,7 +212,7 @@ simply by adding a later one.
 
 ## One person's road
 
-The «Участник» (person) list in the top bar, or `?person=Name`: stops only where they
+The **Person** list in the top bar, or `?person=Name`: stops only where they
 changed something, everything else dimmed. Only their own goodbye plays, and «Поздравляем!»
 only for projects they worked on. The finale opens their card: lines of code, commits, MRs,
 repositories and their share of the team's work.
@@ -212,6 +229,8 @@ pairs by transliteration and lists logins without a full name.
 
 ## How it's built
 
+Notes for coding agents (layout invariants, i18n, privacy rules): [AGENTS.md](AGENTS.md).
+
 ```
 lifeway.py             single entry point (and the binary): local | gitlab | serve | suggest-authors
 fetch_local.py         CLI: local clones → web/data
@@ -227,6 +246,7 @@ ingest/
   cache.py             incremental refresh: unchanged repos from the previous export
   suggest.py           hints for authors.json
   special.py           Life-Way: finish / goodbye marks
+  settings_file.py     lifeway.json: defaults, filters, bots, the page's config.js
   export.py            JSON and <script> for the UI
 serve.py               static web/ (no-store, correct MIME for .js)
 web/
@@ -240,6 +260,8 @@ web/
   js/cinema.js         the script: highlights / full, seeking, special scenes
   js/present.js        cinema mode, recording: tab capture → stage crop → MP4/WebM
   js/hud.js            card, titles, timeline, tooltip, farewell
+  js/i18n.js           English / Russian strings                            (pure)
+  js/config.js         film settings from lifeway.json                      (pure)
   js/main.js           wiring, controls, keyboard
 tests/                 python -m unittest discover tests · node --test tests/
 .github/workflows/     tests + Windows/Linux/macOS binaries (tag v* → release)

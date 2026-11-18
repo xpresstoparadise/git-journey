@@ -9,12 +9,14 @@ from __future__ import annotations
 
 import argparse
 import sys
+import urllib.parse
 from datetime import datetime, timezone
 
 from ingest import suggest
 from ingest.authors import AuthorBook
 from ingest.avatars import fetch_avatars
 from ingest.photos import collect_photos
+from ingest.settings_file import drop_authors, wants_project, write_ui_config
 from ingest.cache import load_previous, observe_cached, previous_avatars, reresolve, reusable
 from ingest.collect import collect_project, finalize, is_candidate, observe_all
 from ingest.config import load_settings
@@ -59,11 +61,22 @@ def main(argv: list[str] | None = None) -> int:
     if settings.env_file:
         print(f"Settings from {settings.env_file}")
 
-    projects = api.get_all(
-        "/projects",
-        {"membership": "true", "simple": "false", "order_by": "last_activity_at", "sort": "desc"},
-    )
-    candidates = [p for p in projects if is_candidate(p, settings.period)]
+    groups = settings.file["ingest"]["groups"]
+    if groups:  # whole groups (with subgroups) instead of «everything I'm a member of»
+        projects, seen = [], set()
+        for g in groups:
+            for p in api.get_all(f"/groups/{urllib.parse.quote(str(g), safe='')}/projects",
+                                 {"include_subgroups": "true", "simple": "false", "order_by": "last_activity_at", "sort": "desc"}):
+                if p["id"] not in seen:
+                    seen.add(p["id"])
+                    projects.append(p)
+    else:
+        projects = api.get_all(
+            "/projects",
+            {"membership": "true", "simple": "false", "order_by": "last_activity_at", "sort": "desc"},
+        )
+    candidates = [p for p in projects if is_candidate(p, settings.period)
+                  and wants_project(p.get("path_with_namespace") or p.get("path") or "", settings.file)]
     print(f"Membership projects: {len(projects)} · candidates for {settings.period}: {len(candidates)}")
 
     previous = {} if args.full else load_previous(settings.out_dir, str(settings.period), settings.url)
@@ -85,7 +98,8 @@ def main(argv: list[str] | None = None) -> int:
     book = AuthorBook.from_file(settings.authors_file)
     observe_all(book, drafts)
     observe_cached(book, cached)
-    fresh = [finalize(d, book) for d in drafts] + [reresolve(p, book) for p in cached]
+    drop = settings.file["ingest"]["excludeAuthors"]
+    fresh = [drop_authors(p, drop) for p in [finalize(d, book) for d in drafts] + [reresolve(p, book) for p in cached]]
     result = sorted(fresh, key=lambda p: (p["createdAt"], p["name"]))
     print(f"Обновлено: {len(drafts)} · из кэша: {len(cached)}")
 
@@ -107,6 +121,7 @@ def main(argv: list[str] | None = None) -> int:
     }
     from serve import ensure_site  # binary: unpack the UI next to the executable first
     ensure_site()
+    write_ui_config(settings.file, settings.out_dir)
     json_path, js_path = write_dataset(settings.out_dir, meta, result)
     authors = sorted({a for p in result for a in p["totals"]["authors"]})
     print(f"Authors ({len(authors)}): {', '.join(authors)}")

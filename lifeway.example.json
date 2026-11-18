@@ -1,0 +1,38 @@
+{
+  "_comment": "Copy to lifeway.json next to the program (or the repo root). Every key is optional. Secrets (GitLab token) stay in .env. URL parameters (?speed=2&mode=full&lang=en) still win over this file.",
+
+  "title": "Our team · Git Life Way",
+  "subtitle": "",
+  "language": "auto",
+
+  "film": {
+    "_comment": "mode: highlights | full · speed: 1, 2, 4 … · times in seconds of real time",
+    "mode": "highlights",
+    "speed": 1,
+    "highlightStops": 26,
+    "cardMinSeconds": 3.5,
+    "farewellSeconds": 15,
+    "sparks": true,
+    "sparkler": true,
+    "grain": true,
+    "confetti": true,
+    "accent": ""
+  },
+
+  "ranking": {
+    "_comment": "Points per commit, merged MR and repository born in the period",
+    "commit": 1,
+    "mr": 3,
+    "newRepo": 2
+  },
+
+  "ingest": {
+    "_comment": "groups: GitLab groups (with subgroups) instead of «all my projects». include/exclude: path patterns (GitLab: group/project, local: folder name). excludeAuthors: name patterns of bots etc. aliveDays: a repo without changes for longer is «finished».",
+    "groups": [],
+    "include": [],
+    "exclude": [],
+    "excludeAuthors": ["renovate*", "dependabot*", "*[[]bot[]]*", "gitlab-ci*"],
+    "aliveDays": 90,
+    "maxMrCommits": 30
+  }
+}

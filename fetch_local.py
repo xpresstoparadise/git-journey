@@ -20,6 +20,7 @@ from ingest.config import load_settings
 from ingest.export import write_dataset
 from ingest.local import GitError, collect_all, git
 from ingest.photos import collect_photos
+from ingest.settings_file import drop_authors, write_ui_config
 from ingest.special import SpecialMarks
 
 
@@ -52,14 +53,15 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     marks = SpecialMarks(settings.finish_re, settings.goodbye_re)
-    drafts = collect_all(root, settings.period, settings.default_branch, marks, settings.max_commits)
+    drafts = collect_all(root, settings.period, settings.default_branch, marks, settings.max_commits, settings.file)
     if not drafts:
         print(f"Нет изменений за {settings.period} ни в одном репозитории из {root}.", file=sys.stderr)
         return 1
 
     book = AuthorBook.from_file(settings.authors_file)
     observe_all(book, drafts)
-    result = sorted((finalize(d, book) for d in drafts), key=lambda p: (p["createdAt"] or "", p["name"]))
+    drop = settings.file["ingest"]["excludeAuthors"]
+    result = sorted((drop_authors(finalize(d, book), drop) for d in drafts), key=lambda p: (p["createdAt"] or "", p["name"]))
     known = {a for p in result for a in p["totals"]["authors"]} | {p["author"] for p in result}
     photos = collect_photos(settings.photos_dir, book, known, settings.out_dir)
 
@@ -72,6 +74,7 @@ def main(argv: list[str] | None = None) -> int:
     }
     from serve import ensure_site  # binary: unpack the UI next to the executable first
     ensure_site()
+    write_ui_config(settings.file, settings.out_dir)
     json_path, js_path = write_dataset(settings.out_dir, meta, result)
     print(f"Авторы ({len(known)}): {', '.join(sorted(known))}")
     missing = sorted(known - set(photos))

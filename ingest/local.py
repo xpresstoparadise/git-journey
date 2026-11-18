@@ -22,6 +22,7 @@ from pathlib import Path
 
 from .collect import EVENT_ORDER, MAX_MR_COMMITS, Draft, Who, sample_evenly
 from .config import Period
+from .settings_file import wants_project
 from .special import SpecialMarks
 
 RS, FS = "\x1e", "\x1f"
@@ -133,7 +134,8 @@ def mr_from_merge(c: dict, seq: int) -> tuple[int, str]:
     return iid, (m.group(1) if m else lines[0])[:140]
 
 
-def collect_local(repo: Path, period: Period, branch: str, marks: SpecialMarks, max_commits: int = 80) -> Draft | None:
+def collect_local(repo: Path, period: Period, branch: str, marks: SpecialMarks, max_commits: int = 80,
+                  max_mr_commits: int = MAX_MR_COMMITS) -> Draft | None:
     ref = resolve_branch(repo, branch)
     def commit_event(c: dict) -> dict:
         return {
@@ -169,7 +171,7 @@ def collect_local(repo: Path, period: Period, branch: str, marks: SpecialMarks, 
         }
         if branch_commits:
             event["commitCount"] = len(branch_commits)
-            event["_commits"] = branch_commits[-MAX_MR_COMMITS:]
+            event["_commits"] = branch_commits[-max_mr_commits:]
             on_mr.update(c["_id"] for c, _ in branch_commits)
         mr_rows.append((event, who))
 
@@ -207,14 +209,18 @@ def collect_local(repo: Path, period: Period, branch: str, marks: SpecialMarks, 
     return draft
 
 
-def collect_all(root: Path, period: Period, branch: str, marks: SpecialMarks, max_commits: int = 80) -> list[Draft]:
+def collect_all(root: Path, period: Period, branch: str, marks: SpecialMarks, max_commits: int = 80,
+                cfg: dict | None = None) -> list[Draft]:
     drafts = []
     repos = find_repos(root)
+    if cfg:
+        repos = [r for r in repos if wants_project(r.name, cfg)]
+    max_mr = (cfg or {}).get("ingest", {}).get("maxMrCommits", MAX_MR_COMMITS)
     print(f"Репозиториев в {root}: {len(repos)}")
     for i, repo in enumerate(repos, 1):
         print(f"[{i}/{len(repos)}] {repo.name}", flush=True)
         try:
-            d = collect_local(repo, period, branch, marks, max_commits)
+            d = collect_local(repo, period, branch, marks, max_commits, max_mr)
         except GitError as e:
             print(f"  ! {e}", file=sys.stderr)
             continue

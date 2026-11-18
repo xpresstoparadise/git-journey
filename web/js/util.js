@@ -1,5 +1,7 @@
 // Small shared helpers. No DOM here — this module is imported by node tests too.
 
+import { LOCALE } from "./i18n.js";
+
 export const DAY_MS = 86_400_000;
 
 export const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
@@ -26,10 +28,10 @@ export function weekStart(t) {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate() - shift).getTime();
 }
 
-const fmtShort = new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "short" });
-const fmtLong = new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "short", year: "numeric" });
-const fmtMonth = new Intl.DateTimeFormat("ru-RU", { month: "short" });
-const fmtMonthLong = new Intl.DateTimeFormat("ru-RU", { month: "long" });
+const fmtShort = new Intl.DateTimeFormat(LOCALE, { day: "numeric", month: "short" });
+const fmtLong = new Intl.DateTimeFormat(LOCALE, { day: "numeric", month: "short", year: "numeric" });
+const fmtMonth = new Intl.DateTimeFormat(LOCALE, { month: "short" });
+const fmtMonthLong = new Intl.DateTimeFormat(LOCALE, { month: "long" });
 
 const clean = (s) => s.replace(/\.$/, "").replace(" г", "");
 export const fmtDay = (t) => clean(fmtShort.format(t));
@@ -37,7 +39,7 @@ export const fmtDate = (t) => clean(fmtLong.format(t));
 export const fmtMonthShort = (t) => clean(fmtMonth.format(t));
 export const fmtMonthName = (t) => fmtMonthLong.format(t);
 
-export const fmtInt = (n) => Math.round(n || 0).toLocaleString("ru-RU");
+export const fmtInt = (n) => Math.round(n || 0).toLocaleString(LOCALE);
 export function fmtCompact(n) {
   const v = Math.abs(n || 0);
   if (v >= 1e6) return `${(n / 1e6).toFixed(1).replace(".0", "")}M`;

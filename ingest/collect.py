@@ -184,7 +184,7 @@ def collect_project(api: GitLabApi, project: dict, settings: Settings) -> Draft 
         branch = mr_commits(api, pid, event["iid"], by_sha)
         if branch:
             event["commitCount"] = len(branch)
-            event["_commits"] = branch[-MAX_MR_COMMITS:]
+            event["_commits"] = branch[-settings.file["ingest"]["maxMrCommits"]:]
             on_mr.update(c["_id"] for c, _ in branch)
         if event["_squash"]:
             on_mr.add(event["_squash"])

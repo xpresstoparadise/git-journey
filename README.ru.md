@@ -9,10 +9,6 @@
 
 ![Ветки репозиториев и MR, карточка проекта](docs/mr-branches.png)
 
-| | |
-|---|---|
-| ![Бенгальский огонь у «настоящего»](docs/sparkler.png) | ![Прощание](docs/goodbye.png) |
-| ![Финал: карта года и вклад команды](docs/finale.png) | ![Вертикальное видео для Telegram](docs/telegram-9x16.png) |
 
 > Видео: откройте `/?demo`, нажмите «Запись» → «Экран 16:9» или «Telegram 9:16» —
 > получится MP4 демо-команды.
@@ -124,6 +120,28 @@ Firewall (Windows, от админа), если нужен доступ по LAN
 netsh advfirewall firewall add rule name="Git Life Way 8766" dir=in action=allow protocol=TCP localport=8766
 ```
 
+## Настройки — `lifeway.json`
+
+Один необязательный файл рядом с программой (или в корне репо) для всего, что не секрет;
+шаблон — `lifeway.example.json`. Любой ключ можно не указывать — будет значение по
+умолчанию; параметры URL (`?speed=2&mode=full&lang=ru`) важнее файла.
+
+| Секция | Ключи |
+|---|---|
+| верхний уровень | `title`, `subtitle`, `language` (`auto` / `en` / `ru`) |
+| `film` | `mode` (`highlights` / `full`), `speed`, `highlightStops`, `cardMinSeconds`, `farewellSeconds`, `sparks`, `sparkler`, `grain`, `confetti`, `accent` |
+| `ranking` | очки за `commit`, `mr`, `newRepo` |
+| `ingest` | `groups` (группы GitLab вместо «все мои проекты»), `include` / `exclude` (маски путей), `excludeAuthors` (боты), `aliveDays`, `maxMrCommits` |
+
+Настройки фильма подхватываются при каждом `serve` и выгрузке — перевыгружать не нужно.
+Секреты (`GITLAB_TOKEN`) остаются в `.env`.
+
+## Язык
+
+Интерфейс на английском и русском: по умолчанию — язык браузера, дальше `language` в
+`lifeway.json`, `?lang=en|ru` или кнопка EN/RU в шапке (запоминается). Демо-команда тоже
+переключается.
+
 ## Фото участников
 
 Два источника, оба работают и вместе:
@@ -218,6 +236,8 @@ Ingest склеивает написания автоматически: оди�
 подсказывает пары по транслитерации и перечисляет логины без полного имени.
 
 ## Устройство
+
+Заметки для ИИ-агентов (инварианты раскладки, перевод, приватность): [AGENTS.md](AGENTS.md).
 
 ```
 lifeway.py             единая точка входа (и бинарник): local | gitlab | serve | suggest-authors

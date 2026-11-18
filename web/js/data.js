@@ -1,6 +1,8 @@
 // Dataset: normalise what fetch_gitlab.py exported, slice it by period and
 // aggregate per-author contribution. Pure functions — no DOM.
 
+import { CONFIG } from "./config.js";
+import { t } from "./i18n.js";
 import { DAY_MS, parseDay, toDay } from "./util.js";
 
 /** Lane colours: distinct hues tuned for a near-black background. */
@@ -11,7 +13,7 @@ export const PALETTE = [
 ];
 
 /** A lane counts as "living" if it changed this close to the end of the period. */
-export const ALIVE_DAYS = 90;
+export const ALIVE_DAYS = CONFIG.aliveDays;
 
 const TYPE_ORDER = { created: 0, commit: 1, mr: 2 };
 
@@ -195,7 +197,7 @@ export function loadDataset(rawProjects, meta = {}, aliases = {}) {
 /** Period options for the selector: each year with data, plus "all" when there is more than one. */
 export function periodOptions(dataset) {
   const opts = dataset.years.map((y) => ({ value: String(y), label: String(y) }));
-  if (opts.length > 1) opts.push({ value: "all", label: "Весь срок" });
+  if (opts.length > 1) opts.push({ value: "all", label: t("period.all") });
   return opts;
 }
 
@@ -291,7 +293,7 @@ export function eventIndex(projects) {
   return map;
 }
 
-export const SCORE = { commit: 1, mr: 3, created: 2 };
+export const SCORE = { commit: CONFIG.ranking.commit, mr: CONFIG.ranking.mr, created: CONFIG.ranking.newRepo };
 
 /** Leaderboard: commits, MRs, repos born, lines. Uses full ingest totals when they apply. */
 export function authorSummary(projects, { dataset = null, period = null } = {}) {

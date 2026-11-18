@@ -1,3 +1,5 @@
+import { LANG } from "./i18n.js";
+
 // Demo team (fictional people and repos). Shown when there is no export yet,
 // or with ?demo. Deterministic: the same film every time.
 //
@@ -6,17 +8,20 @@
 // a finished repo that merges back, a repo born mid-year — and the two special
 // moments: «Life-Way: finish» (api-adapters) and «Life-Way: goodbye» (Сергей Дудин).
 
+// The demo team speaks the interface language.
+const EN = LANG === "en";
+const L10N = (ru, en) => (EN ? en : ru);
+
+const PEOPLE = EN
+  ? ["Irina Savelyeva", "Pavel Orlov", "Maria Kim", "Nikita Volkov", "Olga Belova", "Sergey Dudin", "Kira Nazarova"]
+  : ["Ирина Савельева", "Павел Орлов", "Мария Ким", "Никита Волков", "Ольга Белова", "Сергей Дудин", "Кира Назарова"];
+const PHOTOS = ["irina", "pavel", "maria", "nikita", "olga", "sergey", "kira"];
+
 export const MOCK_META = {
   source: null, period: "2026", defaultBranch: "main", fetchedAt: "2026-11-18T09:00:00Z",
   // Illustrated placeholders (web/img/demo) — how real GitLab photos will look.
-  avatars: {
-    "Ирина Савельева": "img/demo/irina.svg", "Павел Орлов": "img/demo/pavel.svg", "Мария Ким": "img/demo/maria.svg",
-    "Никита Волков": "img/demo/nikita.svg", "Ольга Белова": "img/demo/olga.svg", "Сергей Дудин": "img/demo/sergey.svg",
-    "Кира Назарова": "img/demo/kira.svg",
-  },
+  avatars: Object.fromEntries(PEOPLE.map((name, i) => [name, `img/demo/${PHOTOS[i]}.svg`])),
 };
-
-const PEOPLE = ["Ирина Савельева", "Павел Орлов", "Мария Ким", "Никита Волков", "Ольга Белова", "Сергей Дудин", "Кира Назарова"];
 
 const VERBS = ["add", "fix", "refactor", "tune", "cover", "split", "drop", "speed up", "document", "harden"];
 const THINGS = [
@@ -82,7 +87,7 @@ function build() {
   const P = PEOPLE;
   return [
     makeProject(r, {
-      id: "core-platform", desc: "Базовые сервисы платформы и общие контракты", owner: P[0], created: "2025-02-14",
+      id: "core-platform", desc: L10N("Базовые сервисы платформы и общие контракты", "Core platform services and shared contracts"), owner: P[0], created: "2025-02-14",
       from: "2026-01-12", to: "2026-11-12", team: [P[0], P[1], P[3]], mainEvery: 21,
       mrs: [
         { open: "2026-01-20", merge: "2026-02-03", commits: 5 },
@@ -93,7 +98,7 @@ function build() {
       ],
     }),
     makeProject(r, {
-      id: "ops-gateway", desc: "Единая точка входа для внутренних операционных API", owner: P[1], created: "2026-02-02",
+      id: "ops-gateway", desc: L10N("Единая точка входа для внутренних операционных API", "A single gateway for internal operations APIs"), owner: P[1], created: "2026-02-02",
       from: "2026-02-03", to: "2026-07-20", team: [P[1], P[2]], mainEvery: 14, born: true,
       mrs: [
         { open: "2026-02-10", merge: "2026-02-24", commits: 4 },
@@ -101,7 +106,7 @@ function build() {
       ],
     }),
     makeProject(r, {
-      id: "life-way-ingest", desc: "Сбор истории GitLab: проекты, коммиты, merge requests", owner: P[4], created: "2026-03-09",
+      id: "life-way-ingest", desc: L10N("Сбор истории GitLab: проекты, коммиты, merge requests", "Collects GitLab history: projects, commits, merge requests"), owner: P[4], created: "2026-03-09",
       from: "2026-03-10", to: "2026-11-16", team: [P[4], P[5], P[6]], mainEvery: 12, born: true,
       mrs: [
         { open: "2026-03-16", merge: "2026-04-02", commits: 6 },
@@ -112,12 +117,12 @@ function build() {
       ],
     }),
     makeProject(r, {
-      id: "api-adapters", desc: "Адаптеры внешних API для внутренних сервисов", owner: P[3], created: "2025-03-21",
+      id: "api-adapters", desc: L10N("Адаптеры внешних API для внутренних сервисов", "Adapters from external APIs to internal services"), owner: P[3], created: "2025-03-21",
       from: "2026-02-16", to: "2026-05-06", team: [P[3], P[0]], mainEvery: 9,
       mrs: [{ open: "2026-03-02", merge: "2026-03-20", commits: 4 }],
     }),
     makeProject(r, {
-      id: "portal-ui", desc: "Фронтенд внутреннего портала команды", owner: P[2], created: "2026-05-12",
+      id: "portal-ui", desc: L10N("Фронтенд внутреннего портала команды", "Front end of the team's internal portal"), owner: P[2], created: "2026-05-12",
       from: "2026-05-13", to: "2026-11-17", team: [P[2], P[6], P[1]], mainEvery: 10, born: true,
       mrs: [
         { open: "2026-05-18", merge: "2026-06-03", commits: 5 },
@@ -127,7 +132,7 @@ function build() {
       ],
     }),
     makeProject(r, {
-      id: "notify-bus", desc: "Шина уведомлений для MR и пайплайнов", owner: P[5], created: "2026-08-04",
+      id: "notify-bus", desc: L10N("Шина уведомлений для MR и пайплайнов", "Notification bus for MRs and pipelines"), owner: P[5], created: "2026-08-04",
       from: "2026-08-05", to: "2026-11-10", team: [P[6], P[2]], mainEvery: 8, born: true,
       mrs: [{ open: "2026-08-24", merge: "2026-09-11", commits: 5 }],
     }),
@@ -150,12 +155,12 @@ function addSpecialMoments(projects) {
     }
   }
   byId["life-way-ingest"].events.push({
-    type: "commit", date: farewellDay, sha: "b1e55ed0", message: "handover: README для новой команды",
-    author: leaver, additions: 212, deletions: 9, special: "goodbye", note: "Спасибо, команда! Было круто.",
+    type: "commit", date: farewellDay, sha: "b1e55ed0", message: L10N("handover: README для новой команды", "handover: README for the new team"),
+    author: leaver, additions: 212, deletions: 9, special: "goodbye", note: L10N("Спасибо, команда! Было круто.", "Thank you, team! It was a great ride."),
   });
   byId["api-adapters"].events.push({
     type: "commit", date: "2026-05-08", sha: "f1a1e2d0", message: "release 2.0",
-    author: PEOPLE[3], additions: 48, deletions: 31, special: "finish", note: "Передали в эксплуатацию",
+    author: PEOPLE[3], additions: 48, deletions: 31, special: "finish", note: L10N("Передали в эксплуатацию", "Handed over to production"),
   });
   return projects;
 }

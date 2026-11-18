@@ -61,6 +61,11 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
 def run(host: str = "0.0.0.0", port: int = 8766, browser: bool = True) -> None:
     ensure_site()
+    # Film settings from lifeway.json reach the page on every start — no re-fetch needed.
+    from ingest.config import load_settings  # noqa: PLC0415
+    from ingest.settings_file import write_ui_config  # noqa: PLC0415
+    s = load_settings()
+    write_ui_config(s.file, s.out_dir)
     http.server.ThreadingHTTPServer.allow_reuse_address = True
     handler = functools.partial(Handler, directory=str(WEB_ROOT))
     with http.server.ThreadingHTTPServer((host, port), handler) as httpd:

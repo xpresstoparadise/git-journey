@@ -1,6 +1,7 @@
 // Wiring: data → layout → scene → cinema, plus controls, keyboard, resize,
 // presentation/recording and the "fresh export available" check.
 
+import { CONFIG } from "./config.js";
 import { createCamera } from "./camera.js";
 import { createCinema } from "./cinema.js";
 import { eventIndex, loadDataset, periodBounds, periodOptions, sliceProjects } from "./data.js";
@@ -10,7 +11,8 @@ import { MOCK_META, MOCK_RAW } from "./mock.js";
 import { Cancelled, createPlayer } from "./player.js";
 import { LETTERBOX, RECORD_PRESETS, canRecord, createPresenter, startRecording } from "./present.js";
 import { createScene } from "./scene.js";
-import { clamp, fmtDate, fmtDay, plural } from "./util.js";
+import { LANG, setLang, t, translateDom, w } from "./i18n.js";
+import { clamp, fmtDate, fmtDay } from "./util.js";
 
 const $ = (sel) => document.querySelector(sel);
 const SPEEDS = [1, 2, 4];
@@ -29,7 +31,21 @@ async function loadAliases() {
   }
 }
 
+function applyConfig() {
+  if (CONFIG.title) {
+    document.title = CONFIG.title;
+    $(".brand h1").textContent = CONFIG.title;
+  }
+  if (!CONFIG.film.grain) document.body.classList.add("no-grain");
+  if (CONFIG.film.accent) document.documentElement.style.setProperty("--accent", CONFIG.film.accent);
+}
+
 function boot(dataset, live) {
+  translateDom();
+  applyConfig();
+  const langBtn = $("#lang");
+  langBtn.textContent = LANG === "ru" ? "EN" : "RU";
+  langBtn.addEventListener("click", () => setLang(LANG === "ru" ? "en" : "ru"));
   const hud = createHud();
   hud.setAvatars(dataset.avatars);
   const viewport = $("#viewport");
@@ -38,8 +54,8 @@ function boot(dataset, live) {
 
   const state = {
     period: null,
-    speed: SPEEDS.includes(Number(params.get("speed"))) ? Number(params.get("speed")) : 1,
-    mode: MODES.includes(params.get("mode")) ? params.get("mode") : "highlights",
+    speed: Number(params.get("speed")) > 0 ? Number(params.get("speed")) : Number(CONFIG.film.speed) || 1,
+    mode: MODES.includes(params.get("mode")) ? params.get("mode") : MODES.includes(CONFIG.film.mode) ? CONFIG.film.mode : "highlights",
     person: params.get("person") || "",
     L: null, scene: null, cinema: null, projects: [], finished: false, author: null,
   };
@@ -91,9 +107,9 @@ function boot(dataset, live) {
   const periodLabel = () => options.find((o) => o.value === state.period)?.label ?? state.period;
 
   const sub = $("#source");
-  sub.textContent = live
-    ? `${(dataset.source || "GitLab").replace(/^https?:\/\//, "")} · ${dataset.projects.length} репо${dataset.fetchedAt ? ` · выгрузка ${fmtDate(dataset.fetchedAt)}` : ""}`
-    : demo ? "демо-команда · ?demo" : "демо-данные · запустите fetch_gitlab.py";
+  sub.textContent = (CONFIG.subtitle ? `${CONFIG.subtitle} · ` : "") + (live
+    ? `${(dataset.source || "GitLab").replace(/^https?:\/\//, "")} · ${t("source.repos", { n: dataset.projects.length })}${dataset.fetchedAt ? ` · ${t("source.fetched", { date: fmtDate(dataset.fetchedAt) })}` : ""}`
+    : demo ? t("source.demoParam") : t("source.demo"));
   sub.classList.toggle("demo", !live);
 
   function setUrl(key, value) {
@@ -115,7 +131,7 @@ function boot(dataset, live) {
   function fillPeople(authors) {
     const names = authors.map((a) => a.name);
     if (state.person && !names.includes(state.person)) names.unshift(state.person);
-    personSel.innerHTML = `<option value="">все участники</option>${names
+    personSel.innerHTML = `<option value="">${t("person.all")}</option>${names
       .map((n) => `<option value="${n.replace(/"/g, "&quot;")}">${n.replace(/</g, "&lt;")}</option>`).join("")}`;
     personSel.value = state.person;
   }
@@ -138,7 +154,7 @@ function boot(dataset, live) {
     player.paused = on;
     document.body.classList.toggle("paused", on);
     pauseBtn.setAttribute("aria-pressed", String(on));
-    pauseBtn.querySelector("span").textContent = on ? "Дальше" : "Пауза";
+    pauseBtn.querySelector("span").textContent = on ? t("btn.continue") : t("btn.pause");
     if (!on && hud.card.dataset.mode === "event") restoreCard();
   }
 
@@ -191,7 +207,7 @@ function boot(dataset, live) {
     hud.tooltip(null);
     if (!projects.length) {
       canvas.innerHTML = "";
-      hud.caption("Тишина", "В выбранном периоде нет изменений");
+      hud.caption(t("cap.silence"), t("cap.silenceLine"));
       return;
     }
 
@@ -258,11 +274,11 @@ function boot(dataset, live) {
     const zFit = clamp(camera.fitZoom({ x0: 0, x1: L.width, y0: 0, y1: 1 }, 24), 0.03, 0.9);
     const winH = camera.safeRect().height / zFit;
     if (!box) {
-      hud.caption("Вклад команды", "клик по автору — его путь");
+      hud.caption(t("cap.team"), t("cap.clickAuthor"));
       camera.frame({ x0: 0, x1: L.width, y0: Math.max(0, L.endY - 90), y1: Math.max(0, L.endY - 90) + winH }, { ms: 1400, minZ: 0.02, maxZ: 1, pad: 24 });
       return;
     }
-    hud.caption(`Путь · ${state.author}`, `${box.count} ${plural(box.count, ["изменение", "изменения", "изменений"])} в ${box.lanes} репо`);
+    hud.caption(t("cap.authorRoad", { name: state.author }), t("cap.authorRoadLine", { n: box.count, changes: w(box.count, "change"), r: box.lanes }));
     const win = (yTop) => ({ x0: 0, x1: L.width, y0: yTop, y1: yTop + winH });
     const tour = ++authorTour;
     if (box.y1 - box.y0 <= winH) {
@@ -327,8 +343,8 @@ function boot(dataset, live) {
     const res = saved ? await r.stop() : null;
     r.restore();
     if (res) {
-      const tip = res.ext === "mp4" ? "MP4 — Telegram покажет сразу" : "WebM — для Telegram лучше Chrome/Edge 126+ (MP4)";
-      hud.caption("Запись сохранена", `${res.width}×${res.height} · ${tip}`);
+      const tip = res.ext === "mp4" ? t("cap.recMp4") : t("cap.recWebm");
+      hud.caption(t("cap.recSaved"), `${res.width}×${res.height} · ${tip}`);
     }
   }
 
@@ -367,7 +383,7 @@ function boot(dataset, live) {
       recording = null;
       restore();
       document.body.classList.remove("recording");
-      hud.caption("Запись отменена", "браузер не дал доступ к вкладке");
+      hud.caption(t("cap.recCancelled"), t("cap.recDenied"));
       return;
     }
     recBtn.setAttribute("aria-pressed", "true");

@@ -15,6 +15,7 @@ from ingest.config import Settings, parse_period  # noqa: E402
 from ingest.export import write_dataset  # noqa: E402
 from ingest.gitlab import GitLabError  # noqa: E402
 from ingest.special import FINISH_RE, GOODBYE_RE, SpecialMarks  # noqa: E402
+from ingest.settings_file import load_file  # noqa: E402
 
 
 def commit(sha, day, title, name, email, add=10, dele=2, parents=1):
@@ -62,7 +63,7 @@ class FakeGitLab:
 def settings(**kw):
     base = dict(
         url="http://gitlab", token="t", period=parse_period("2026"), default_branch="main",
-        max_commits=80, max_mrs=40, mr_stats=False, finish_re=FINISH_RE, goodbye_re=GOODBYE_RE, authors_file=Path("/nonexistent"), out_dir=Path("."), env_file=None, photos_dir=Path("/nonexistent"), repos_dir=Path("/nonexistent"),
+        max_commits=80, max_mrs=40, mr_stats=False, finish_re=FINISH_RE, goodbye_re=GOODBYE_RE, authors_file=Path("/nonexistent"), out_dir=Path("."), env_file=None, photos_dir=Path("/nonexistent"), repos_dir=Path("/nonexistent"), file=load_file(Path("/nonexistent")),
     )
     return Settings(**{**base, **kw})
 

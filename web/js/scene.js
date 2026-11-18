@@ -2,7 +2,9 @@
 // small imperative handles (reveal trunk to h, grow a lane, pop a node, …).
 // Nothing in here knows about timing — that is the cinema's job.
 
-import { escapeHtml as esc, fmtDay, fmtMonthShort, plural, truncate } from "./util.js";
+import { CONFIG } from "./config.js";
+import { t, w } from "./i18n.js";
+import { escapeHtml as esc, fmtDay, fmtMonthShort, truncate } from "./util.js";
 
 const NS = "http://www.w3.org/2000/svg";
 const COMET_SEGMENTS = 18;
@@ -20,11 +22,11 @@ function nodeLabel(n) {
   const delta = e.additions != null
     ? ` · <tspan class="plus">+${e.additions}</tspan> <tspan class="minus">−${e.deletions ?? 0}</tspan>`
     : "";
-  if (n.kind === "created") return { title: "репозиторий создан", meta: `${fmtDay(e.t)} · ${esc(who)}` };
+  if (n.kind === "created") return { title: t("node.created"), meta: `${fmtDay(e.t)} · ${esc(who)}` };
   if (n.kind === "mr") {
     const k = e.commitCount ?? e.commits?.length ?? 0;
-    const commits = k ? `${k} ${plural(k, ["коммит", "коммита", "коммитов"])} · ` : "";
-    return { title: `!${e.iid} ${truncate(e.title, 28)}`, meta: `${fmtDay(e.t)} · ${commits}влит в main · ${esc(who)}` };
+    const commits = k ? `${k} ${w(k, "commit")} · ` : "";
+    return { title: `!${e.iid} ${truncate(e.title, 28)}`, meta: `${fmtDay(e.t)} · ${commits}${t("node.merged")} · ${esc(who)}` };
   }
   return { title: truncate(e.message || e.sha, 30), meta: `${fmtDay(e.t)}${delta} · ${esc(who)}` };
 }
@@ -66,7 +68,7 @@ function buildMarkup(L, authorIdx) {
   const { width, height, trunkX } = L;
   const weight = changeWeights(L);
   const out = [];
-  out.push(`<svg xmlns="${NS}" class="world" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" aria-label="Git life way команды">`);
+  out.push(`<svg xmlns="${NS}" class="world" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" aria-label="${t("aria.world")}">`);
   out.push(`<style class="focus-style"></style><style class="author-style"></style>`);
 
   // Grid: month guides across the whole world, labels hugging the trunk.
@@ -78,7 +80,7 @@ function buildMarkup(L, authorIdx) {
       <text x="${f(trunkX - 16)}" y="${f(m.y + 4)}" text-anchor="end">${label}</text></g>`);
   }
   out.push(`<g class="now-mark"><line x1="0" x2="${width}" y1="${f(L.endY)}" y2="${f(L.endY)}" />
-    <text x="${f(trunkX)}" y="${f(L.endY - 16)}" text-anchor="middle">настоящее</text></g>`);
+    <text x="${f(trunkX)}" y="${f(L.endY - 16)}" text-anchor="middle">${t("now")}</text></g>`);
   out.push(`</g>`);
 
   // Lanes and MR branches grow alongside the trunk (vertical lines, revealed by dash offset).
@@ -275,7 +277,7 @@ export function createScene(host, L) {
   const fadeK = (now) => (fade ? Math.min(1, (now - fade.t0) / fade.ms) : 0);
 
   // How much of a sparkler the star is: none for most of the way, full at «настоящее».
-  const sparklerness = () => Math.min(1, Math.max(0, (glow - 0.62) / 0.33)) ** 1.5;
+  const sparklerness = () => (CONFIG.film.sparkler ? Math.min(1, Math.max(0, (glow - 0.62) / 0.33)) ** 1.5 : 0);
 
   function emit(x, y, now, k, opts = {}) {
     const sp = sparks[sparkIdx++ % sparks.length];
@@ -358,7 +360,7 @@ export function createScene(host, L) {
         headGlow.setAttribute("r", ((16 + glow * 6 + sp * 10 + shimmer * (1 + glow + sp * 2)) * (1 - k * 0.85)).toFixed(2));
         svg.style.setProperty("--sparkler", sp.toFixed(3));
         head.setAttribute("r", (6.5 * (1 - k * 0.7)).toFixed(2));
-        if (!calm && svg.classList.contains("runner-on")) {
+        if (!calm && CONFIG.film.sparks && svg.classList.contains("runner-on")) {
           // moving: up to ~60 sparks/s by speed; resting: a rare twinkle
           const base = motion.speed > 5 ? Math.min(140, 20 + motion.speed * 0.15) : 7;
           // a steady sparkle in January, a shower later, a full sparkler at «настоящее»

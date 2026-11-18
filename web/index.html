@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -39,40 +39,41 @@
       </div>
       <div class="controls">
         <label class="field">
-          <span>Период</span>
-          <select id="period" aria-label="Период"></select>
+          <span data-i18n="ui.period">Период</span>
+          <select id="period" aria-label="Период" data-i18n-aria="ui.period"></select>
         </label>
         <label class="field person-field">
-          <span>Участник</span>
-          <select id="person" aria-label="Чей путь показать"><option value="">все</option></select>
+          <span data-i18n="ui.person">Участник</span>
+          <select id="person" aria-label="Чей путь показать" data-i18n-aria="ui.personAria"><option value=""></option></select>
         </label>
-        <div class="seg" role="group" aria-label="Версия показа">
-          <button type="button" data-mode="highlights" aria-pressed="true" title="Только ключевые моменты, ~1.5 минуты (M)">Главное</button>
-          <button type="button" data-mode="full" aria-pressed="false" title="Каждый визит в каждый репо (M)">Полностью</button>
+        <div class="seg" role="group" aria-label="Версия показа" data-i18n-aria="ui.modeAria">
+          <button type="button" data-mode="highlights" aria-pressed="true" title="Только ключевые моменты, ~1.5 минуты (M)" data-i18n-title="ui.highlightsTitle" data-i18n="ui.highlights">Главное</button>
+          <button type="button" data-mode="full" aria-pressed="false" title="Каждый визит в каждый репо (M)" data-i18n-title="ui.fullTitle" data-i18n="ui.full">Полностью</button>
         </div>
-        <div class="seg" role="group" aria-label="Скорость">
-          <button type="button" data-speed="1" aria-pressed="true" title="Скорость 1× (клавиша 1)">1×</button>
-          <button type="button" data-speed="2" aria-pressed="false" title="Скорость 2× (клавиша 2)">2×</button>
-          <button type="button" data-speed="4" aria-pressed="false" title="Скорость 4× (клавиша 3)">4×</button>
+        <div class="seg" role="group" aria-label="Скорость" data-i18n-aria="ui.speed">
+          <button type="button" data-speed="1" aria-pressed="true" title="Скорость 1× (клавиша 1)" data-i18n-title="ui.speed1">1×</button>
+          <button type="button" data-speed="2" aria-pressed="false" title="Скорость 2× (клавиша 2)" data-i18n-title="ui.speed2">2×</button>
+          <button type="button" data-speed="4" aria-pressed="false" title="Скорость 4× (клавиша 3)" data-i18n-title="ui.speed4">4×</button>
         </div>
-        <button type="button" class="btn icon-btn" id="pause" aria-pressed="false" title="Пауза / дальше (пробел)">
+        <button type="button" class="btn icon-btn" id="pause" aria-pressed="false" title="Пауза / дальше (пробел)" data-i18n-title="ui.pauseTitle">
           <svg viewBox="0 0 16 16" aria-hidden="true" class="i-pause"><rect x="3.5" y="3" width="3" height="10" rx="1" /><rect x="9.5" y="3" width="3" height="10" rx="1" /></svg>
           <svg viewBox="0 0 16 16" aria-hidden="true" class="i-play"><path d="M5 3.2v9.6a.6.6 0 0 0 .9.5l7.6-4.8a.6.6 0 0 0 0-1L5.9 2.7a.6.6 0 0 0-.9.5z" /></svg>
-          <span>Пауза</span>
+          <span data-i18n="btn.pause">Пауза</span>
         </button>
-        <button type="button" class="btn" id="skip" title="Сразу к сводке (F)">К финалу</button>
-        <button type="button" class="btn icon-btn" id="present" title="Презентация: полный экран и кинорамка (P)">
+        <button type="button" class="btn" id="skip" title="Сразу к сводке (F)" data-i18n-title="ui.skipTitle" data-i18n="ui.skip">К финалу</button>
+        <button type="button" class="btn icon-btn" id="present" title="Презентация: полный экран и кинорамка (P)" data-i18n-title="ui.cinemaTitle">
           <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 5V3a1 1 0 0 1 1-1h2M11 2h2a1 1 0 0 1 1 1v2M14 11v2a1 1 0 0 1-1 1h-2M5 14H3a1 1 0 0 1-1-1v-2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-          <span>Кино</span>
+          <span data-i18n="ui.cinema">Кино</span>
         </button>
         <div class="rec-wrap">
-          <button type="button" class="btn icon-btn rec" id="record" aria-pressed="false" aria-haspopup="menu" aria-expanded="false" title="Записать показ в видео: 16:9, Telegram 9:16, квадрат">
+          <button type="button" class="btn icon-btn rec" id="record" aria-pressed="false" aria-haspopup="menu" aria-expanded="false" title="Записать показ в видео: 16:9, Telegram 9:16, квадрат" data-i18n-title="ui.recordTitle">
             <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="4.5" /></svg>
-            <span>Запись</span>
+            <span data-i18n="ui.record">Запись</span>
           </button>
           <div class="rec-menu" id="rec-menu" role="menu" hidden></div>
         </div>
-        <button type="button" class="btn primary" id="replay" title="Проиграть снова (R)">Сначала</button>
+        <button type="button" class="btn lang-btn" id="lang" title="Language / Язык"></button>
+        <button type="button" class="btn primary" id="replay" title="Проиграть снова (R)" data-i18n-title="ui.replayTitle" data-i18n="ui.replay">Сначала</button>
       </div>
     </header>
 
@@ -84,21 +85,22 @@
         <div class="caption" id="caption" aria-live="polite"></div>
         <div class="timeline" id="timeline" aria-hidden="true"></div>
       </div>
-      <ul class="legend" aria-label="Обозначения">
-        <li><i class="lg-trunk"></i>ствол GitLab</li>
-        <li><i class="lg-born"></i>рождение</li>
-        <li><i class="lg-commit"></i>коммит (цвет репо)</li>
+      <ul class="legend" aria-label="Обозначения" data-i18n-aria="ui.legend">
+        <li><i class="lg-trunk"></i><span data-i18n="lg.trunk">ствол GitLab</span></li>
+        <li><i class="lg-born"></i><span data-i18n="lg.born">рождение</span></li>
+        <li><i class="lg-commit"></i><span data-i18n="lg.commit">коммит (цвет репо)</span></li>
         <li><i class="lg-mr"></i>MR → main</li>
       </ul>
     </footer>
 
     <div class="tooltip" id="tooltip" role="tooltip"></div>
-    <div class="fresh" id="fresh" role="status"><span>Есть свежая выгрузка из GitLab</span><button type="button" class="btn primary">Обновить</button></div>
+    <div class="fresh" id="fresh" role="status"><span data-i18n="ui.fresh">Есть свежая выгрузка из GitLab</span><button type="button" class="btn primary" data-i18n="ui.reload">Обновить</button></div>
     <div class="cut" id="cut" aria-hidden="true"></div>
-    <p class="kbd-hint">Пробел — пауза · клик по шкале — перемотка · M — главное/всё · P — кино · F — финал · R — сначала</p>
+    <p class="kbd-hint" data-i18n="ui.kbd">Пробел — пауза · клик по шкале — перемотка · M — главное/всё · P — кино · F — финал · R — сначала</p>
   </div>
 
   <!-- Generated by fetch_gitlab.py; the UI falls back to demo data when it is missing. -->
+  <script src="data/config.js" onerror="void 0"></script>
   <script src="data/gitlab_raw.js" onerror="void 0"></script>
   <script type="module" src="js/main.js"></script>
 </body>

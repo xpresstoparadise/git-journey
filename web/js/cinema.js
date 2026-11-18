@@ -8,9 +8,11 @@
 //               the rest lights up in the background as the trunk flies by.
 //   «Полностью» — stops at every visit.
 
+import { CONFIG } from "./config.js";
 import { authorSummary, withBranchCommits } from "./data.js";
+import { t, w } from "./i18n.js";
 import { keyVisits, specialPlays } from "./story.js";
-import { clamp, fmtDay, fmtInt, fmtMonthName, lerp, plural, truncate } from "./util.js";
+import { clamp, fmtDay, fmtInt, fmtMonthName, lerp, truncate } from "./util.js";
 
 const FULL = {            // milliseconds at 1×
   TRUNK_PX_PER_S: 560,
@@ -39,17 +41,17 @@ const HIGHLIGHTS = {
   MERGE: 480,
   FLYOVER: 4600,
 };
-export const HIGHLIGHT_STOPS = 26;
+export const HIGHLIGHT_STOPS = Math.max(1, Math.round(CONFIG.film.highlightStops));
 export const MODES = { highlights: HIGHLIGHTS, full: FULL };
 
 // Narrow screens may pull back further so outward labels stay on screen.
 const narrow = () => typeof document !== "undefined" && (document.querySelector(".stage")?.clientWidth ?? 1e9) <= 760;
 const ZOOM = { RUN: 1.05, FORK: 1.15, VISIT_MAX: 1.15, get VISIT_MIN() { return narrow() ? 0.5 : 0.85; } };
-const ACCENT = "#3dd6c6";
+const ACCENT = CONFIG.film.accent || "#3dd6c6";
 const MR_COLOR = "#8fb0ff";
-const FAREWELL_MS = 15000; // real time on screen for a «Good bye» card
+const FAREWELL_MS = CONFIG.film.farewellSeconds * 1000; // real time on screen for a «Good bye» card
 const STAR_FADE_MS = 2600; // real time for the runner to go out at the end
-const CARD_MIN_MS = 3500;  // real time a repo card stays before the next one replaces it
+const CARD_MIN_MS = CONFIG.film.cardMinSeconds * 1000;  // real time a repo card stays before the next one replaces it
 
 export function createCinema({ L, scene, camera, hud, player, projects, dataset, period, periodLabel, mode = "highlights", person = null }) {
   const T = MODES[mode] || HIGHLIGHTS;
@@ -175,8 +177,8 @@ export function createCinema({ L, scene, camera, hud, player, projects, dataset,
     scene.focus(p.id);
     hud.idle(false);
     hud.caption(
-      v.first ? `Новый путь · ${p.name}` : `Снова · ${p.name}`,
-      `${n} ${plural(n, ["изменение", "изменения", "изменений"])} · неделя ${fmtDay(v.row.t0)}${p.alive ? " · живой" : ""}`
+      t(v.first ? "cap.newRoad" : "cap.again", { name: p.name }),
+      t("cap.week", { n, changes: w(n, "change"), day: fmtDay(v.row.t0) }) + (p.alive ? t("cap.alive") : "")
     );
 
     if (v.first) {
@@ -220,7 +222,7 @@ export function createCinema({ L, scene, camera, hud, player, projects, dataset,
       if (!br.started) {
         br.started = true;
         rec.growTo(b.h0);
-        hud.caption(`Ветка !${b.event.iid} · ${p.name}`, truncate(b.event.title || "", 70));
+        hud.caption(t("cap.branch", { iid: b.event.iid, name: p.name }), truncate(b.event.title || "", 70));
         await player.tween(T.MR, (k) => {
           const pt = br.fork.set(k);
           br.forkHalo.set(k);
@@ -252,14 +254,14 @@ export function createCinema({ L, scene, camera, hud, player, projects, dataset,
       br.bead?.classList.add("shown");
       rec.growTo(b.h3);
       const kc = b.event.commitCount ?? b.commits.length;
-      hud.caption(`Влит !${b.event.iid} · ${p.name}`, `${kc ? `${kc} ${plural(kc, ["коммит", "коммита", "коммитов"])} · ` : ""}${fmtDay(b.event.t)}`);
+      hud.caption(t("cap.merged", { iid: b.event.iid, name: p.name }), `${kc ? `${kc} ${w(kc, "commit")} · ` : ""}${fmtDay(b.event.t)}`);
       await player.wait(perNode * 0.5);
     }
 
     await playSpecial();
 
     if (v.last && !lane.alive) {
-      hud.caption(`Завершён · ${p.name}`, "Ветка вливается обратно в историю GitLab");
+      hud.caption(t("cap.repoDone", { name: p.name }), t("cap.repoDoneLine"));
       rec.growTo(lane.endH);
       rec.ended = true;
       await player.tween(T.MERGE, (k) => {
@@ -307,7 +309,7 @@ export function createCinema({ L, scene, camera, hud, player, projects, dataset,
     const xs = [node.x - side * 60, node.x + side * 280];
     camera.frame({ x0: Math.min(...xs), x1: Math.max(...xs), y0: node.y - 130, y1: node.y + 130 }, { ms: sec(700), minZ: ZOOM.VISIT_MIN, maxZ: 1.5 });
     await player.wait(600);
-    hud.chapter("Поздравляем!", `${p.name} · путь завершён`, { big: true, tone: "gold" });
+    hud.chapter(t("cap.congrats"), t("cap.congratsSub", { name: p.name }), { big: true, tone: "gold" });
     hud.confetti([p.color, "#e8c96a", "#3dd6c6", "#ffffff"]);
     markCard();
     hud.finishCard(p, {
@@ -315,7 +317,7 @@ export function createCinema({ L, scene, camera, hud, player, projects, dataset,
       commits: all.filter((e) => e.type === "commit").length, mrs: all.filter((e) => e.type === "mr").length,
       note: node.event.note,
     }, { side: node.lane.side > 0 ? "left" : "right" });
-    hud.caption(`Проект завершён · ${p.name}`, node.event.note || `${people.length} ${plural(people.length, ["участник", "участника", "участников"])} · спасибо всем`);
+    hud.caption(t("cap.projectDone", { name: p.name }), node.event.note || t("cap.crewThanks", { n: people.length, people: w(people.length, "person") }));
     cardPid = null; // next visit re-opens the regular card
     await player.wait(4200);
   }
@@ -329,7 +331,7 @@ export function createCinema({ L, scene, camera, hud, player, projects, dataset,
     const winH = camera.safeRect().height / zFit;
     camera.frame({ x0: 0, x1: L.width, y0: node.y - winH * 0.6, y1: node.y + winH * 0.4 }, { ms: sec(1400), minZ: 0.05, maxZ: 1, pad: 24 });
     await player.wait(900);
-    hud.caption(`Good bye, ${name}`, node.event.note || "спасибо за путь");
+    hud.caption(t("cap.goodbye", { name }), node.event.note || t("cap.goodbyeLine"));
     hud.farewell({
       name,
       note: node.event.note,
@@ -374,8 +376,8 @@ export function createCinema({ L, scene, camera, hud, player, projects, dataset,
     current = null;
     const alive = projects.filter((p) => p.alive).length;
     const me = person && authors.find((a) => a.name === person);
-    if (me) hud.caption(`Путь · ${me.name}`, `${me.commits} комм · ${me.mrs} MR · +${fmtInt(me.add)} −${fmtInt(me.del)} строк`);
-    else hud.caption("Вклад команды", `${projects.length} репо · ${alive} живых · ${authors.length} ${plural(authors.length, ["автор", "автора", "авторов"])} · клик по автору — его путь`);
+    if (me) hud.caption(t("cap.personRoad", { name: me.name }), t("cap.personLine", { c: me.commits, m: me.mrs, a: fmtInt(me.add), d: fmtInt(me.del) }));
+    else hud.caption(t("cap.team"), t("cap.teamLine", { p: projects.length, alive, n: authors.length, authors: w(authors.length, "author") }));
     await flyover({ animate });
   }
 
@@ -402,12 +404,12 @@ export function createCinema({ L, scene, camera, hud, player, projects, dataset,
       hud.clock(t0);
       scene.highlightAuthor(person);
       if (fromRow === 0) {
-        hud.chapter(person ? person : "Git Life Way", person ? `путь участника · ${periodLabel}` : `${periodLabel} · ${projects.length} репо`, { big: true });
-        hud.caption("Старт периода", `${periodLabel} · ${projects.length} репо · ${mode === "full" ? "полная версия" : "главное"}`);
+        hud.chapter(person ? person : t("chapter.title"), person ? t("cap.personStart", { period: periodLabel }) : t("chapter.sub", { period: periodLabel, p: projects.length }), { big: true });
+        hud.caption(t("cap.start"), t("cap.startLine", { period: periodLabel, p: projects.length, mode: t(mode === "full" ? "cap.modeFull" : "cap.modeHighlights") }));
         await player.wait(1600);
       } else {
         hud.chapter(fmtMonthName(t0), String(new Date(t0).getFullYear()));
-        hud.caption("Перемотка", `с недели ${fmtDay(L.rows[fromRow].t0)}`);
+        hud.caption(t("cap.seek"), t("cap.seekLine", { day: fmtDay(L.rows[fromRow].t0) }));
         await player.wait(500);
       }
 
@@ -417,7 +419,7 @@ export function createCinema({ L, scene, camera, hud, player, projects, dataset,
         if (row.h0 > tipH + 60) {
           scene.focus(null);
           hud.idle(true); // card stays where it is (no flicker), just steps back
-          hud.caption("Ствол GitLab", `${fmtDay(row.t0)} · ${row.visits.length} репо в работе`);
+          hud.caption(t("cap.trunk"), t("cap.trunkLine", { day: fmtDay(row.t0), n: row.visits.length }));
         }
         await trunkTo(row.h0);
         for (const v of row.visits) {
@@ -429,12 +431,12 @@ export function createCinema({ L, scene, camera, hud, player, projects, dataset,
       scene.focus(null);
       hud.closeCard();
       cardPid = null;
-      hud.caption("До настоящего", "Живые репо бегут параллельно стволу");
-      hud.chapter("Настоящее", `${projects.filter((p) => p.alive).length} живых веток`);
+      hud.caption(t("cap.toNow"), t("cap.toNowLine"));
+      hud.chapter(t("cap.now"), t("cap.nowSub", { n: projects.filter((p) => p.alive).length }));
       await trunkTo(L.hEnd, 0.9);
       flushBackground();
       // The way is walked: the star lingers at «настоящее» and slowly goes out.
-      hud.caption("Путь пройден", "…и звезда гаснет");
+      hud.caption(t("cap.walked"), t("cap.walkedLine"));
       scene.runnerFade(STAR_FADE_MS);
       await player.wait(STAR_FADE_MS * player.speed);
       await finale({ animate: true });
