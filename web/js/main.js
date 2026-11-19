@@ -51,6 +51,9 @@ function boot(dataset, live) {
   const viewport = $("#viewport");
   const canvas = $("#canvas");
   const params = new URL(location.href).searchParams;
+  // ?debug — a small overlay with the numbers that matter on big teams (fps,
+  // world size, DOM, off-screen visits). Screenshot it when reporting a problem.
+  const debug = params.has("debug") ? createDebug() : null;
 
   const state = {
     period: null,
@@ -222,6 +225,7 @@ function boot(dataset, live) {
       L, scene, camera, hud, player, projects, dataset,
       period: state.period, periodLabel: periodLabel(), mode: state.mode,
       person: state.person || null,
+      onVisit: debug?.visit,
     });
     state.cinema = cinema;
     fillPeople(cinema.authors);
@@ -312,13 +316,25 @@ function boot(dataset, live) {
     const hit = index.get(el.dataset.nid);
     return hit && { p: hit.project, e: hit.event };
   };
+  // Hover is a class on the one node under the cursor, not CSS :hover — a
+  // `.node:hover .label` rule made Chrome re-style every label in the world
+  // whenever the moving map slid a group under a resting mouse.
+  let hovered = null;
+  const hover = (el) => {
+    if (el === hovered) return;
+    hovered?.classList.remove("hover");
+    el?.classList.add("hover");
+    hovered = el;
+    state.scene?.hover(el ? el.dataset.nid : null);
+  };
   canvas.addEventListener("pointermove", (ev) => {
     const el = ev.target.closest?.(".node.shown");
+    hover(el ?? null);
     const hit = el && eventOf(el);
     if (hit?.e) hud.tooltip(hit.p, hit.e, ev.clientX, ev.clientY);
     else hud.tooltip(null);
   });
-  canvas.addEventListener("pointerleave", () => hud.tooltip(null));
+  canvas.addEventListener("pointerleave", () => { hover(null); hud.tooltip(null); });
   canvas.addEventListener("click", (ev) => {
     const el = ev.target.closest?.(".node.shown");
     const hit = el && eventOf(el);
@@ -474,3 +490,52 @@ const live = !demo && Array.isArray(raw) && raw.length > 0;
 loadAliases().then((aliases) => {
   boot(loadDataset(live ? raw : MOCK_RAW, live ? window.GITLAB_META || {} : MOCK_META, aliases), live);
 });
+
+function createDebug() {
+  const box = document.createElement("pre");
+  box.className = "debug-overlay";
+  document.body.appendChild(box);
+  let frames = 0, fps = 0, worst = 0, last = performance.now(), t0 = last;
+  let visit = null, visitAt = 0, visits = 0, missed = 0;
+  const missedNames = [];
+  // Is the newest shown node of the visit (or its lane) inside the window?
+  const visible = (v) => {
+    const shown = v.nodes.map((n) => document.querySelector(`.node.shown[data-nid="${CSS.escape(n.event.id)}"]`)).filter(Boolean);
+    const el = shown.at(-1) || document.querySelector(`.lane-grow[data-pid="${CSS.escape(v.lane.project.id)}"]`);
+    const r = el?.getBoundingClientRect();
+    return !!r && r.right > 0 && r.left < innerWidth && r.bottom > 0 && r.top < innerHeight;
+  };
+  const loop = (now) => {
+    frames++;
+    worst = Math.max(worst, now - last);
+    last = now;
+    requestAnimationFrame(loop);
+  };
+  requestAnimationFrame(loop);
+  setInterval(() => {
+    const now = performance.now();
+    fps = (frames * 1000) / (now - t0);
+    frames = 0; t0 = now;
+    const onScreen = visit && now - visitAt > 2500 ? (visible(visit) ? " ✓" : " ✗ off screen") : "";
+    const svg = document.querySelector("svg.world");
+    const z = /scale\(([\d.]+)\)/.exec(document.querySelector(".canvas")?.style.transform || "")?.[1];
+    box.textContent = [
+      `fps ${fps.toFixed(0)} · worst frame ${worst.toFixed(0)} ms · zoom ${z ? (+z).toFixed(2) : "?"}`,
+      `world ${svg?.getAttribute("width")}×${svg?.getAttribute("height")} · DOM ${document.getElementsByTagName("*").length}`,
+      `lanes ${document.querySelectorAll(".lane-grow").length} · nodes ${document.querySelectorAll(".node.shown").length}/${document.querySelectorAll(".node").length} · labels ${document.querySelectorAll(".node-label").length}`,
+      `visits ${visits} · lane off screen ${missed}${missedNames.length ? ` (${missedNames.slice(-3).join(", ")})` : ""}`,
+      visit ? `now: ${visit.lane.project.name}${visit.first ? " (new)" : ""}${onScreen}` : "now: trunk",
+    ].join("\n");
+    worst = 0;
+  }, 500);
+  return {
+    visit(v) {
+      // Judged when the visit ends: all its nodes are out, the camera has landed.
+      // (A lane's last visit ends merging back into the trunk — the camera leaves with it.)
+      if (visit && !v && !(visit.last && !visit.lane.alive) && !visible(visit)) { missed++; missedNames.push(visit.lane.project.name); }
+      visit = v;
+      if (v) { visits++; visitAt = performance.now(); }
+    },
+  };
+}
+

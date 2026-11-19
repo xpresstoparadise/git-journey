@@ -57,6 +57,8 @@ export function createCamera({ viewport, canvas, safeInsets, onUserMove }) {
       const k = 1 - Math.exp(-(dtMs / 1000) / tau);
       for (const key of ["x", "y", "ax", "ay"]) cur[key] += (target[key] - cur[key]) * k;
       cur.z = Math.exp(Math.log(cur.z) + (Math.log(target.z) - Math.log(cur.z)) * k);
+      // Land exactly: an endless creep of tiny zoom steps keeps the browser re-rasterizing.
+      if (Math.abs(Math.log(cur.z / target.z)) < 0.002) cur.z = target.z;
     }
     apply(dtMs);
   }

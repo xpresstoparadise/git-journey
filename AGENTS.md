@@ -19,6 +19,7 @@ python serve.py --no-browser          # UI at http://127.0.0.1:8766/   (?demo = 
 python fetch_local.py repos/ --no-serve   # build web/data from local clones
 python lifeway.py --help              # the single entry point (also the binary)
 python tools/export_public.py ../git-journey    # clean public copy (see Privacy)
+python tools/make_stress_data.py /tmp/w/data     # fictional 40-repo team for load tests; open with ?debug
 ```
 
 Run both test suites before every commit. Both must stay green.
@@ -31,7 +32,7 @@ Run both test suites before every commit. Both must stay green.
   `config.py` (.env + journey.json → Settings), `collect.py` (GitLab), `local.py` (git),
   `authors.py` (one person = one name), `special.py` (Journey marks), `settings_file.py`
   (journey.json), `photos.py` / `avatars.py`, `cache.py`, `export.py`.
-- `web/js/` — ES modules. **Pure** (no DOM, imported by node tests): `data.js`, `layout.js`,
+- `web/js/` — ES modules. **Pure** (no DOM, imported by node tests): `data.js`, `layout.js`, `framing.js`,
   `story.js`, `util.js`, `i18n.js`, `config.js`, `mock.js`. DOM: `scene.js` (SVG), `camera.js`,
   `player.js` (virtual clock), `cinema.js` (the script), `hud.js`, `present.js`, `main.js`.
 - `.github/workflows/build.yml` — tests, then binaries for Windows/Linux/macOS; tag `v*` → release.
@@ -50,6 +51,14 @@ Run both test suites before every commit. Both must stay green.
   `player.wait(ms * player.speed)` or `performance.now()` throttles in `hud.js`.
 - **Narrow stage** (phone, 9:16 recording): layout reacts to the stage via container queries,
   not the window. Test 9:16 by adding `data-frame="9:16"` and classes `present recording` to `<body>`.
+- **Big teams (performance)** — measured on 45 repos / 2000 nodes, each rule cost 0.1–3 s per frame:
+  no `<text>` in the shapes SVG (all text is in `svg.world-text`; Chrome re-lays out a whole SVG
+  root with text on every zoom step, even `display:none` text); node labels are created only for
+  the focused lane / hovered node (`showLabel`); nothing unreached is rendered (`display:none` +
+  `@starting-style`, not `opacity:0`); never set inherited custom properties on the `<svg>` root;
+  focus toggles `.lit` on one lane's elements, not a `<style>`; no infinite SVG animations
+  during the film; no CSS `:hover` rules inside the world. Camera framing lives in pure
+  `framing.js` (tested: a far lane must stay on screen).
 - **No CDNs, no network at runtime**: fonts are in `web/fonts`, photos in `web/data/avatars`.
 
 ## Privacy (important)

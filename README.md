@@ -164,7 +164,9 @@ recording). No photo — initials.
 | click on a dot | event card with a link to GitLab |
 | click on an author in the finale | light up their road on the map |
 
-URL parameters: `?period=2026&speed=2&mode=full&person=Name`, `?demo` — the demo team.
+URL parameters: `?period=2026&speed=2&mode=full&person=Name`, `?demo` — the demo team,
+`?debug` — an overlay with fps, world size, DOM size and a count of visits whose branch ended
+off screen (screenshot it when reporting a problem with a big team).
 
 ## Recording video
 

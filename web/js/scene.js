@@ -68,20 +68,27 @@ function buildMarkup(L, authorIdx) {
   const { width, height, trunkX } = L;
   const weight = changeWeights(L);
   const out = [];
+  // Every <text> lives in a second, light SVG on top. Chrome re-lays out the whole
+  // tree of an SVG root that holds text on each zoom step — with thousands of
+  // shapes that was ~0.3 s per frame of a camera move on a big team.
+  const tx = [];
+  const labels = new Map(); // node id → label markup
   out.push(`<svg xmlns="${NS}" class="world" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" aria-label="${t("aria.world")}">`);
-  out.push(`<style class="focus-style"></style><style class="author-style"></style>`);
+  out.push(`<style class="author-style"></style>`);
 
   // Grid: month guides across the whole world, labels hugging the trunk.
   out.push(`<g class="grid">`);
+  tx.push(`<g class="grid">`);
   for (const m of L.months) {
     const label = m.isYear ? new Date(m.t).getFullYear() : fmtMonthShort(m.t);
-    out.push(`<g class="month${m.isYear ? " year" : ""}" data-y="${f(m.y)}">
-      <line x1="0" x2="${width}" y1="${f(m.y)}" y2="${f(m.y)}" />
-      <text x="${f(trunkX - 16)}" y="${f(m.y + 4)}" text-anchor="end">${label}</text></g>`);
+    const cls = `month${m.isYear ? " year" : ""}`;
+    out.push(`<g class="${cls}" data-y="${f(m.y)}"><line x1="0" x2="${width}" y1="${f(m.y)}" y2="${f(m.y)}" /></g>`);
+    tx.push(`<g class="${cls}"><text x="${f(trunkX - 16)}" y="${f(m.y + 4)}" text-anchor="end">${label}</text></g>`);
   }
-  out.push(`<g class="now-mark"><line x1="0" x2="${width}" y1="${f(L.endY)}" y2="${f(L.endY)}" />
-    <text x="${f(trunkX)}" y="${f(L.endY - 16)}" text-anchor="middle">${t("now")}</text></g>`);
+  out.push(`<g class="now-mark"><line x1="0" x2="${width}" y1="${f(L.endY)}" y2="${f(L.endY)}" /></g>`);
+  tx.push(`<g class="now-mark"><text x="${f(trunkX)}" y="${f(L.endY - 16)}" text-anchor="middle">${t("now")}</text></g>`);
   out.push(`</g>`);
+  tx.push(`</g>`);
 
   // Lanes and MR branches grow alongside the trunk (vertical lines, revealed by dash offset).
   out.push(`<g class="grow">`);
@@ -120,11 +127,12 @@ function buildMarkup(L, authorIdx) {
     <path class="trunk-glow" d="${trunkD}" />
     <path class="trunk-line" d="${trunkD}" />
     <path class="trunk-ahead" d="M ${f(trunkX)} ${f(L.startY)} L ${f(trunkX)} ${f(L.startY)}" />
-    <text class="trunk-tag" x="${f(trunkX + 16)}" y="${f(L.startY)}">GitLab · main</text>
   </g>`);
+  tx.push(`<g class="trunk"><text class="trunk-tag" x="${f(trunkX + 16)}" y="${f(L.startY)}">GitLab · main</text></g>`);
 
   // Nodes + labels (labels only show for the lane in focus, or on hover).
   out.push(`<g class="nodes">`);
+  tx.push(`<g class="nodes">`);
   for (const lane of L.lanes) {
     const pid = esc(lane.project.id);
     const c = lane.project.color;
@@ -137,7 +145,9 @@ function buildMarkup(L, authorIdx) {
       const lx = (n.labelX - n.x).toFixed(1);
       const w = weight(n.event);
       out.push(`<g class="lane-el node kind-${n.kind}" data-pid="${pid}" data-nid="${esc(n.event.id)}" data-a="${authorIdx.get(n.event.author)}" transform="translate(${f(n.x)} ${f(n.y)})" style="--c:${c};--w:${w.toFixed(3)};--ph:${(-phase(n.event.id) * 3).toFixed(2)}s">
-        <g class="pop">${w > 0.55 ? `<circle class="spark" r="11" />` : ""}${nodeShape(n, c)}</g>
+        <g class="pop">${w > 0.55 ? `<circle class="spark" r="11" />` : ""}${nodeShape(n, c)}</g></g>`);
+      // Labels are not in the DOM until needed (see createScene: showLabel).
+      labels.set(n.event.id, `<g class="node-label" transform="translate(${f(n.x)} ${f(n.y)})" style="--c:${c}">
         <g class="label" text-anchor="${anchor}">
           <text class="t1" x="${lx}" y="-2">${esc(title)}</text>
           <text class="t2" x="${lx}" y="13">${meta}</text>
@@ -150,15 +160,16 @@ function buildMarkup(L, authorIdx) {
     const py = L.y(lane.startH) + 22;
     out.push(`<g class="lane-el pill" data-pid="${pid}" style="--c:${c}">
       <rect x="${f(px)}" y="${f(py)}" width="${pw}" height="26" rx="13" />
-      <circle cx="${f(px + 13)}" cy="${f(py + 13)}" r="4" />
-      <text x="${f(px + 23)}" y="${f(py + 17.5)}">${esc(name)}</text></g>`);
+      <circle cx="${f(px + 13)}" cy="${f(py + 13)}" r="4" /></g>`);
+    tx.push(`<g class="lane-el pill" data-pid="${pid}" style="--c:${c}"><text x="${f(px + 23)}" y="${f(py + 17.5)}">${esc(name)}</text></g>`);
     // Map labels for the finale overview: vertical names along each lane.
     const vx = lane.x - lane.side * 18; // inner side: the outer one belongs to MR branches
-    out.push(`<text class="lane-el lane-name" data-pid="${pid}" style="--c:${c}" text-anchor="start"
+    tx.push(`<text class="lane-el lane-name" data-pid="${pid}" style="--c:${c}" text-anchor="start"
       transform="translate(${f(vx)} ${f(L.y(lane.startH) - 12)}) rotate(-90)">${esc(lane.project.name)}</text>`);
     if (lane.alive) {
       out.push(`<g class="lane-el alive-tag" data-pid="${pid}" style="--c:${c}">
-        <circle class="beacon" cx="${f(lane.x)}" cy="${f(L.endY)}" r="5" />
+        <circle class="beacon" cx="${f(lane.x)}" cy="${f(L.endY)}" r="5" /></g>`);
+      tx.push(`<g class="lane-el alive-tag" data-pid="${pid}" style="--c:${c}">
         <text text-anchor="end" transform="translate(${f(vx)} ${f(L.endY + 26)}) rotate(-90)">${esc(lane.project.name)}</text></g>`);
     }
   }
@@ -174,7 +185,9 @@ function buildMarkup(L, authorIdx) {
   out.push(`<g class="sparks">${Array.from({ length: SPARKS }, (_, i) => `<line class="${SPARK_TINTS[i % SPARK_TINTS.length]}" x1="0" y1="0" x2="0" y2="0" stroke-width="0" />`).join("")}</g>`);
   out.push(`<circle class="head-glow" r="16" cx="${f(trunkX)}" cy="${f(L.startY)}" /><circle class="head" r="6.5" cx="${f(trunkX)}" cy="${f(L.startY)}" />`);
   out.push(`</g></svg>`);
-  return out.join("");
+  tx.push(`</g><g class="node-labels"></g>`);
+  out.push(`<svg xmlns="${NS}" class="world world-text" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" aria-hidden="true">${tx.join("")}</svg>`);
+  return { html: out.join(""), labels };
 }
 
 /** Reveal helper for any path: draw the first `p` share of it. */
@@ -196,20 +209,36 @@ export function createScene(host, L) {
   for (const lane of L.lanes) for (const n of lane.nodes) {
     if (!authorIdx.has(n.event.author)) authorIdx.set(n.event.author, authorIdx.size);
   }
-  host.innerHTML = buildMarkup(L, authorIdx);
+  const { html, labels } = buildMarkup(L, authorIdx);
+  host.innerHTML = html;
   host.style.width = `${L.width}px`;
   host.style.height = `${L.height}px`;
-  const svg = host.querySelector("svg");
-  const focusStyle = svg.querySelector(".focus-style");
+  const svg = host.querySelector("svg.world:not(.world-text)");
+  const textSvg = host.querySelector("svg.world-text");
   const authorStyle = svg.querySelector(".author-style");
   const q = (sel) => svg.querySelector(sel);
   const qa = (sel) => [...svg.querySelectorAll(sel)];
+  const qt = (sel) => [...textSvg.querySelectorAll(sel)];
+  // State classes on the root apply to both layers.
+  const rootToggle = (cls, on) => { svg.classList.toggle(cls, on); textSvg.classList.toggle(cls, on); };
+  // One handle for a shape and its text twin (pill, alive tag).
+  const pair = (els) => (els.length ? { classList: { add: (c) => els.forEach((e) => e.classList.add(c)) } } : null);
 
   const trunk = revealer(q(".trunk-line"));
   const trunkGlow = revealer(q(".trunk-glow"));
   const ahead = q(".trunk-ahead");
-  const tag = q(".trunk-tag");
-  const months = qa(".grid .month").map((el) => ({ el, y: Number(el.dataset.y) }));
+  const tag = textSvg.querySelector(".trunk-tag");
+  const monthText = qt(".grid .month");
+  const months = qa(".grid .month").map((el, i) => ({ el: pair([el, monthText[i]]), y: Number(el.dataset.y) }));
+
+  // Lane elements by repo, for focus without touching the rest of the map.
+  const byPid = new Map();
+  for (const el of host.querySelectorAll(".lane-el")) {
+    const pid = el.dataset.pid;
+    if (!byPid.has(pid)) byPid.set(pid, []);
+    byPid.get(pid).push(el);
+  }
+  let litPid = null;
 
   const lanes = new Map();
   for (const lane of L.lanes) {
@@ -224,8 +253,8 @@ export function createScene(host, L) {
       grown: 0,
       fork: revealer(fork), forkHalo: revealer(sel("fork-halo")),
       merge: merge ? revealer(merge) : null, mergeHalo: merge ? revealer(sel("merge-halo")) : null,
-      pill: sel("pill"),
-      alive: sel("alive-tag"),
+      pill: pair([...host.querySelectorAll(`.pill[data-pid="${CSS.escape(lane.project.id)}"]`)]),
+      alive: pair([...host.querySelectorAll(`.alive-tag[data-pid="${CSS.escape(lane.project.id)}"]`)]),
       /** Show the lane up to height h (never shrinks). */
       growTo(h) {
         const v = Math.min(growLen, Math.max(this.grown, h - lane.startH));
@@ -238,6 +267,29 @@ export function createScene(host, L) {
 
   const nodes = new Map();
   for (const el of qa(".node")) nodes.set(el.dataset.nid, { el });
+
+  // Node labels exist only for the lane in focus and the node under the cursor.
+  // Even display:none SVG <text> is re-laid out by Chrome on every zoom step, so
+  // 2000 hidden labels cost ~0.3 s per frame of a camera move; a dozen cost nothing.
+  const labelLayer = textSvg.querySelector(".node-labels");
+  const labelEls = new Map();
+  let hoverId = null;
+  const nodeIdsByPid = new Map(L.lanes.map((l) => [l.project.id, l.nodes.map((n) => n.event.id)]));
+  const isShown = (id) => nodes.get(id)?.el.classList.contains("shown");
+  function showLabel(id, on) {
+    const have = labelEls.get(id);
+    if (on && !have && labels.has(id)) {
+      const g = document.createElementNS(NS, "g");
+      g.innerHTML = labels.get(id);
+      const el = g.firstElementChild;
+      labelLayer.appendChild(el);
+      labelEls.set(id, el);
+    } else if (!on && have) {
+      have.remove();
+      labelEls.delete(id);
+    }
+  }
+  const pidOf = (id) => nodes.get(id)?.node?.lane?.project.id ?? nodes.get(id)?.el.dataset.pid;
   for (const lane of L.lanes) for (const n of lane.nodes) nodes.get(n.event.id).node = n;
 
   // MR branches: fork off the lane, run up through their commits, merge back.
@@ -273,6 +325,7 @@ export function createScene(host, L) {
   let emitDebt = 0;           // fractional sparks carried between frames
   let motion = { vx: 0, vy: 0, speed: 0 };
   let fade = null;            // { t0, ms } while the star goes out
+  let runnerColor = null, sparklerTxt = null; // last values written to the runner group
   let glow = 0;               // 0 → 1 along the way: the star burns brighter as time goes on
   const fadeK = (now) => (fade ? Math.min(1, (now - fade.t0) / fade.ms) : 0);
 
@@ -336,7 +389,9 @@ export function createScene(host, L) {
       if (!history.length || history[0].x !== x || history[0].y !== y) history.unshift({ x, y, t: now });
       else history[0].t = now;
       for (const el of [head, headGlow]) { el.setAttribute("cx", f(x)); el.setAttribute("cy", f(y)); }
-      if (color) svg.style.setProperty("--runner", color);
+      // On the runner group, never the <svg>: an inherited property set on the root
+      // re-styles every element of the world (≈20k on a big team) at each colour change.
+      if (color && color !== runnerColor) { runnerColor = color; runnerG.style.setProperty("--runner", color); }
     },
 
     /** Every frame: the tail follows the recent path and shrinks back when the runner rests. */
@@ -358,7 +413,8 @@ export function createScene(host, L) {
         const shimmer = Math.sin(now / 85) * 1.6 + Math.sin(now / 37) * 0.9;
         const sp = sparklerness();
         headGlow.setAttribute("r", ((16 + glow * 6 + sp * 10 + shimmer * (1 + glow + sp * 2)) * (1 - k * 0.85)).toFixed(2));
-        svg.style.setProperty("--sparkler", sp.toFixed(3));
+        const spTxt = sp.toFixed(3);
+        if (spTxt !== sparklerTxt) { sparklerTxt = spTxt; runnerG.style.setProperty("--sparkler", spTxt); }
         head.setAttribute("r", (6.5 * (1 - k * 0.7)).toFixed(2));
         if (!calm && CONFIG.film.sparks && svg.classList.contains("runner-on")) {
           // moving: up to ~60 sparks/s by speed; resting: a rare twinkle
@@ -442,17 +498,31 @@ export function createScene(host, L) {
       requestAnimationFrame(() => { runnerG.style.opacity = "0"; });
     },
 
-    /** Dim everything except one lane (null → no focus). */
+    /** Dim everything except one lane (null → no focus). Only the old and the
+     *  new lane's elements change class: re-styling the whole map per visit is
+     *  what made big teams (thousands of nodes) stutter on every camera move. */
     focus(pid) {
-      svg.classList.toggle("focusing", pid != null);
-      focusStyle.textContent = pid == null ? "" : `
-        svg.world.focusing .lane-el[data-pid="${CSS.escape(pid)}"] { --dim: 1; }
-        svg.world.focusing .node.shown[data-pid="${CSS.escape(pid)}"] .label { opacity: 1; }`;
+      rootToggle("focusing", pid != null);
+      if (pid === litPid) return;
+      for (const el of byPid.get(litPid) ?? []) el.classList.remove("lit");
+      for (const id of nodeIdsByPid.get(litPid) ?? []) if (id !== hoverId) showLabel(id, false);
+      for (const el of byPid.get(pid) ?? []) el.classList.add("lit");
+      for (const id of nodeIdsByPid.get(pid) ?? []) if (isShown(id)) showLabel(id, true);
+      litPid = pid;
+    },
+
+    /** The node under the cursor shows its label (null → none). */
+    hover(id) {
+      if (id === hoverId) return;
+      if (hoverId != null && pidOf(hoverId) !== litPid) showLabel(hoverId, false);
+      hoverId = id;
+      if (id != null && isShown(id)) showLabel(id, true);
     },
 
     showNode(id) {
       const rec = nodes.get(id);
       rec?.el.classList.add("shown");
+      if (rec && litPid != null && pidOf(id) === litPid) showLabel(id, true);
       return rec;
     },
 
@@ -481,12 +551,12 @@ export function createScene(host, L) {
       }
     },
 
-    setFinale(on) { svg.classList.toggle("finale", !!on); },
+    setFinale(on) { rootToggle("finale", !!on); },
 
     /** One person's way: their nodes stay lit, their lanes stay bright, the rest fades. */
     highlightAuthor(name) {
       const i = name == null ? undefined : authorIdx.get(name);
-      svg.classList.toggle("author-focus", i !== undefined);
+      rootToggle("author-focus", i !== undefined);
       if (i === undefined) { authorStyle.textContent = ""; return null; }
       const lanes = L.lanes.filter((l) => l.nodes.some((n) => n.event.author === name));
       authorStyle.textContent = `

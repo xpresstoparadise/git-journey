@@ -11,6 +11,7 @@
 import { CONFIG } from "./config.js";
 import { authorSummary, withBranchCommits } from "./data.js";
 import { t, w } from "./i18n.js";
+import { flightPlan, visitFrame } from "./framing.js";
 import { keyVisits, specialPlays } from "./story.js";
 import { clamp, fmtDay, fmtInt, fmtMonthName, lerp, truncate } from "./util.js";
 
@@ -53,7 +54,7 @@ const FAREWELL_MS = CONFIG.film.farewellSeconds * 1000; // real time on screen f
 const STAR_FADE_MS = 2600; // real time for the runner to go out at the end
 const CARD_MIN_MS = CONFIG.film.cardMinSeconds * 1000;  // real time a repo card stays before the next one replaces it
 
-export function createCinema({ L, scene, camera, hud, player, projects, dataset, period, periodLabel, mode = "highlights", person = null }) {
+export function createCinema({ L, scene, camera, hud, player, projects, dataset, period, periodLabel, mode = "highlights", person = null, onVisit = null }) {
   const T = MODES[mode] || HIGHLIGHTS;
   const stops = person
     ? keyVisits(L.visits, { person })
@@ -167,6 +168,11 @@ export function createCinema({ L, scene, camera, hud, player, projects, dataset,
   }
 
   async function playVisit(v) {
+    onVisit?.(v);
+    try { await visit(v); } finally { onVisit?.(null); }
+  }
+
+  async function visit(v) {
     const lane = v.lane;
     const p = lane.project;
     const rec = scene.lanes.get(p.id);
@@ -184,20 +190,21 @@ export function createCinema({ L, scene, camera, hud, player, projects, dataset,
     if (v.first) {
       rec.started = true;
       rec.pill?.classList.add("shown");
-      await player.tween(T.FORK, (k) => {
+      // A lane far out to the side: pull back and take a little longer, so
+      // the camera keeps the star in frame instead of chasing it off screen.
+      const fly = flightPlan(lane.x - L.trunkX, camera.safeRect().width, { z: ZOOM.FORK, minZ: ZOOM.VISIT_MIN * 0.55 });
+      await player.tween(T.FORK * fly.slow, (k) => {
         const pt = rec.fork.set(k);
         rec.forkHalo.set(k);
         runnerAt(pt.x, pt.y, p.color);
-        camera.follow(pt.x, pt.y, ZOOM.FORK, { ay: 0.6, lag: 0.2 });
+        camera.follow(pt.x, pt.y, fly.z, { ay: 0.6, lag: fly.slow > 1 ? 0.14 : 0.2 });
       });
     }
 
     // Short visit → frame it whole. Long one → readable zoom, start at its
     // bottom and let the camera ride up the lane with each revealed node.
-    const z = clamp(camera.fitZoom(v.bbox, 48), ZOOM.VISIT_MIN, ZOOM.VISIT_MAX);
-    const winH = (camera.safeRect().height - 96) / z;
-    const tall = v.bbox.y1 - v.bbox.y0 > winH;
-    const box = tall ? { ...v.bbox, y0: v.bbox.y1 - winH } : v.bbox;
+    // A lane too far from the trunk to show both: the lane wins.
+    const { box, z, tall, winH } = visitFrame(v, camera.safeRect(), { minZ: ZOOM.VISIT_MIN, maxZ: ZOOM.VISIT_MAX });
     camera.frame(box, { ms: sec(T.CAMERA), minZ: ZOOM.VISIT_MIN, maxZ: ZOOM.VISIT_MAX });
     await player.wait(T.CAMERA * 0.8);
     const perNode = clamp(T.VISIT_BUDGET / Math.max(1, n), T.NODE_MIN, T.NODE_MAX);
@@ -264,11 +271,12 @@ export function createCinema({ L, scene, camera, hud, player, projects, dataset,
       hud.caption(t("cap.repoDone", { name: p.name }), t("cap.repoDoneLine"));
       rec.growTo(lane.endH);
       rec.ended = true;
-      await player.tween(T.MERGE, (k) => {
+      const fly = flightPlan(lane.x - L.trunkX, camera.safeRect().width, { z: ZOOM.FORK, minZ: ZOOM.VISIT_MIN * 0.55 });
+      await player.tween(T.MERGE * fly.slow, (k) => {
         const pt = rec.merge.set(k);
         rec.mergeHalo.set(k);
         runnerAt(pt.x, pt.y, p.color);
-        camera.follow(pt.x, pt.y, ZOOM.FORK, { ay: 0.5, lag: 0.25 });
+        camera.follow(pt.x, pt.y, fly.z, { ay: 0.5, lag: fly.slow > 1 ? 0.16 : 0.25 });
       });
     } else {
       await player.wait(T.HOLD);
@@ -417,7 +425,8 @@ export function createCinema({ L, scene, camera, hud, player, projects, dataset,
         background.push(...row.visits.filter((v) => !isStop(v)));
         if (!row.visits.some(isStop)) continue; // fly past — the next trunk run lights these up
         if (row.h0 > tipH + 60) {
-          scene.focus(null);
+          // The last lane stays lit while the trunk runs on: un-dimming the whole
+          // map and dimming it back costs a full restyle twice per stop.
           hud.idle(true); // card stays where it is (no flicker), just steps back
           hud.caption(t("cap.trunk"), t("cap.trunkLine", { day: fmtDay(row.t0), n: row.visits.length }));
         }

@@ -252,6 +252,8 @@ export function buildLayout(projects, [from, to]) {
       y0: y(v.h1) - 30,
       y1: y(v.h0) + 34,
     };
+    // The part that must stay on screen even when the trunk does not fit.
+    v.core = { ...v.bbox, x0: Math.min(...xs, outer), x1: Math.max(...xs, outer) };
   }
 
   const months = [];

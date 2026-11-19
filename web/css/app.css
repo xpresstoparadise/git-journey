@@ -77,6 +77,8 @@ body[data-frame="1:1"] .stage { left: 50%; right: auto; width: min(100vw, 100vh)
 }
 
 svg.world { display: block; overflow: visible; }
+/* All world text, on top of the shapes (see scene.js: why text has its own SVG). */
+svg.world-text { position: absolute; left: 0; top: 0; pointer-events: none; }
 
 /* grid */
 .grid .month line { stroke: rgba(255, 255, 255, 0.04); stroke-width: 1; }
@@ -97,6 +99,7 @@ svg.world { display: block; overflow: visible; }
 /* lanes & curves — `--dim` drops to .16 for lanes out of focus */
 .lane-el { transition: opacity 500ms var(--ease); }
 svg.world.focusing .lane-el { --dim: 0.16; }
+svg.world.focusing .lane-el.lit { --dim: 1; }
 
 .lane-grow {
   fill: none;
@@ -139,20 +142,29 @@ svg.world.finale .mr-run { stroke-width: 5; }
 }
 
 /* nodes */
-.node { opacity: 0; transition: opacity 320ms var(--ease); cursor: pointer; }
-.node:not(.shown) { pointer-events: none; }
+/* Not yet reached → out of the render tree. Kept at opacity 0 instead, thousands
+   of future nodes were still laid out, painted and layerized every frame. */
+.node { transition: opacity 320ms var(--ease); cursor: pointer; }
+.node:not(.shown) { display: none; }
 .node.shown { opacity: var(--dim, 1); }
-.node .pop { transform: scale(0.2); transition: transform 520ms var(--spring); }
+.node .pop { transition: transform 520ms var(--spring); }
 .node.shown .pop { transform: scale(1); }
+@starting-style {
+  .node.shown { opacity: 0; }
+  .node.shown .pop { transform: scale(0.2); }
+}
 .node .shape { fill: var(--c); stroke: var(--bg); stroke-width: 3; }
 .node.kind-mr .shape { fill: var(--mr); }
 .node.kind-created .shape { fill: var(--create); stroke-width: 3.5; }
 .node .halo { fill: none; stroke-width: 1.5; opacity: 0.55; }
-.node.kind-created.shown .halo { animation: halo 2.4s var(--ease) infinite; transform-origin: 0 0; }
-.node:hover .shape { stroke: var(--text); stroke-width: 2; }
+/* A few pulses, not forever: every infinite SVG animation restyles and repaints each frame. */
+.node.kind-created.shown .halo { animation: halo 2.4s var(--ease) 3; transform-origin: 0 0; }
+.node.hover .shape { stroke: var(--text); stroke-width: 2; }
 
-.node .label { opacity: 0; transition: opacity 380ms var(--ease); pointer-events: none; }
-.node.shown:hover .label { opacity: 1; }
+/* Node labels are created only for the lane in focus and the node under the
+   cursor (scene.js: showLabel) — they fade in as they are added. */
+.node-label .label { transition: opacity 380ms var(--ease); }
+@starting-style { .node-label .label { opacity: 0; } }
 .label text { paint-order: stroke; stroke: var(--bg); stroke-width: 5px; stroke-linejoin: round; }
 .label .t1 { fill: var(--text); font: 500 12px var(--mono); }
 .label .t2 { fill: var(--muted); font: 400 10.5px var(--mono); }
@@ -162,13 +174,17 @@ svg.world.finale .mr-run { stroke-width: 5; }
 .merge-bead { fill: var(--mr); stroke: var(--bg); stroke-width: 2; opacity: 0; transition: opacity 300ms var(--ease); }
 .merge-bead.shown { opacity: var(--dim, 1); }
 
-.pill { opacity: 0; transition: opacity 500ms var(--ease); }
+/* Unreached text stays out of the render tree: Chrome re-lays out every rendered
+   SVG <text> on each zoom step, opacity 0 or not — that was the stutter on camera moves. */
+.pill { transition: opacity 500ms var(--ease); }
+.pill:not(.shown), .alive-tag:not(.shown), .grid .month:not(.shown) text { display: none; }
 .pill.shown { opacity: var(--dim, 1); }
+@starting-style { .pill.shown, .alive-tag.shown { opacity: 0; } .grid .month.shown text { opacity: 0; } }
 .pill rect { fill: var(--bg-2); stroke: var(--c); stroke-width: 1.4; }
 .pill circle { fill: var(--c); }
 .pill text { fill: var(--text); font: 700 12.5px var(--font); letter-spacing: -0.01em; }
 
-.alive-tag { opacity: 0; transition: opacity 600ms var(--ease); }
+.alive-tag { transition: opacity 600ms var(--ease); }
 .alive-tag.shown { opacity: var(--dim, 1); }
 .alive-tag .beacon { fill: var(--c); }
 .alive-tag.shown .beacon { animation: beacon 2s ease-out infinite; transform-box: fill-box; transform-origin: center; }
@@ -842,7 +858,7 @@ body.recording .viewport { cursor: none; }
   /* collapsed strip is for live viewing (tap to expand) — never while recording */
   body:not(.recording) .card.open:not(.expanded) { max-height: 92px; overflow: hidden; }
   body:not(.recording) .card.open:not(.expanded) > :not(.grip):not(.kicker):not(h2):not(.card-head) { display: none; }
-  body:not(.recording) .card.open:not(.expanded) .now-av { width: 44px; height: 44px; }
+  body:not(.recording) .card.open:not(.expanded) .now-av { width: 44px; height: 44px; margin-bottom: 0; }
   body:not(.recording) .card.open:not(.expanded) .now-av small { display: none; }
   body:not(.recording) .card.open:not(.expanded) h2 { font-size: 18px; line-height: 22px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
@@ -864,7 +880,7 @@ body.recording .viewport { cursor: none; }
   body.recording .card .crew-names { display: none; }
   body.recording .card .kicker { margin-bottom: 4px; }
   body.recording .card h2 { font-size: 19px; line-height: 23px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  body.recording .card .now-av { width: 58px; height: 58px; border-radius: 16px; font-size: 19px; }
+  body.recording .card .now-av { width: 58px; height: 58px; border-radius: 16px; font-size: 19px; margin-bottom: 0; }
   body.recording .card .now-av img { border-radius: 16px; }
   body.recording .card .now-av small { display: none; }
   body.recording .card .card-head + .stats { margin-top: 6px; }
@@ -1089,7 +1105,9 @@ body.present .farewell { top: 50%; }
 .card .card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
 .card .card-title { min-width: 0; }
 .card .now-av {
-  position: relative; flex: none; width: 76px; height: 76px; margin-top: 2px;
+  /* margin-bottom: room for the name under the picture — it is absolutely placed,
+     so without it the description below ran into the name. */
+  position: relative; flex: none; width: 76px; height: 76px; margin: 2px 0 22px;
   display: grid; place-items: center; border-radius: 20px; overflow: visible;
   background: var(--surface-2); color: var(--text); font: 800 24px var(--font);
   box-shadow: 0 0 0 2px var(--bg), 0 0 0 3.5px var(--c);
@@ -1105,3 +1123,11 @@ body.present .farewell { top: 50%; }
 .lang-btn { min-width: 44px; justify-content: center; padding: 0 10px; font: 700 12px var(--mono); letter-spacing: 0.06em; color: var(--muted); }
 .lang-btn:hover { color: var(--text); }
 body.no-grain .grain { display: none; }
+
+/* ?debug overlay */
+.debug-overlay {
+  position: fixed; left: 8px; bottom: 8px; z-index: 9999; margin: 0; padding: 8px 10px;
+  font: 500 11px/1.45 var(--mono); color: #d8ffe9; background: rgba(0, 0, 0, 0.72);
+  border-radius: 8px; pointer-events: none; white-space: pre;
+}
+

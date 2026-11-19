@@ -199,3 +199,41 @@ test("finale twinkle weight grows with the size of the change", async () => {
   assert.equal(Math.max(...nodes.map((n) => w(n.event))), 1);
   assert.ok(w(nodes[0].event) < 0.3, "tiny changes barely twinkle");
 });
+
+// ---- camera framing: a lane far from the trunk must still land on screen ----
+import { flightPlan, visitFrame } from "../web/js/framing.js";
+
+function wideTeam(n = 44) {
+  const day = (d) => new Date(Date.UTC(2026, 0, 1 + d)).toISOString().slice(0, 10);
+  return Array.from({ length: n }, (_, i) => ({
+    id: `wide-${i}`, name: `fictional-repo-${i}`, path: `team/fictional-repo-${i}`, author: "Ada Example",
+    createdAt: day(i * 6), defaultBranch: "main", webUrl: "",
+    events: Array.from({ length: 12 }, (_, k) => ({
+      type: "commit", date: day(i * 6 + k * 9), sha: `${i}x${k}`, message: `change ${k}`,
+      author: k % 2 ? "Ada Example" : "Bob Sample", additions: 10 + k, deletions: k,
+    })),
+  }));
+}
+
+test("framing: every visit's lane and nodes are on screen, even far from the trunk", () => {
+  const ds = loadDataset(wideTeam(), { period: "2026" });
+  const bounds = periodBounds(ds, "2026");
+  const L = buildLayout(sliceProjects(ds, bounds), bounds);
+  const far = Math.max(...L.lanes.map((l) => Math.abs(l.x - L.trunkX)));
+  assert.ok(far > 2500, `test needs a wide world (farthest lane ${far}px)`);
+  for (const [safe, minZ] of [[{ width: 1600, height: 760 }, 0.85], [{ width: 420, height: 640 }, 0.5]]) {
+    for (const v of L.visits) {
+      const { box, z } = visitFrame(v, safe, { minZ, maxZ: 1.15 });
+      const cx = (box.x0 + box.x1) / 2, half = safe.width / 2 / z;
+      for (const x of [v.lane.x, ...v.nodes.map((n) => n.x)]) {
+        assert.ok(x >= cx - half && x <= cx + half, `${v.lane.project.name}: x=${x} outside [${cx - half}, ${cx + half}] on ${safe.width}px`);
+      }
+    }
+  }
+});
+
+test("framing: long flights pull back and slow down, short ones stay as they are", () => {
+  assert.deepEqual(flightPlan(300, 1600, { z: 1.15, minZ: 0.47 }), { z: 1.15, slow: 1 });
+  const far = flightPlan(4200, 1600, { z: 1.15, minZ: 0.47 });
+  assert.ok(far.z < 1.15 && far.z >= 0.47 && far.slow > 1 && far.slow <= 1.9);
+});
