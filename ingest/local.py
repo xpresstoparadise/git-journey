@@ -22,6 +22,7 @@ from pathlib import Path
 
 from .collect import EVENT_ORDER, MAX_MR_COMMITS, Draft, Who, sample_evenly
 from .config import Period
+from .icons import find_logo
 from .settings_file import wants_project
 from .special import SpecialMarks
 
@@ -203,6 +204,7 @@ def collect_local(repo: Path, period: Period, branch: str, marks: SpecialMarks, 
         "description": "",
         "defaultBranch": ref.removeprefix("origin/"),
         "webUrl": web_url(repo),
+        "_logo": str(logo) if (logo := find_logo(repo)) else "",
         "lastActivityAt": (all_commits[-1][0]["date"] if all_commits else created) or "",
         "_owner": Who(root["name"], root["email"]) if root else Who(repo.name),
     })

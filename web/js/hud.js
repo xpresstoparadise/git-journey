@@ -38,6 +38,16 @@ function miniAv(name, extra = "") {
   return `<span class="mini-av ${extra}" aria-hidden="true">${esc(initials(name))}${src ? `<img src="${esc(src)}" alt="" loading="lazy" onerror="this.remove()">` : ""}</span>`;
 }
 
+/** The repo's icon (GitLab avatar, logo, photos/repos/…) over a tile with its first letter. */
+function repoIcon(project, extra = "") {
+  const letter = ((project.name || "?").replace(/^[^\p{L}\p{N}]+/u, "")[0] || "?").toUpperCase();
+  const img = project.icon ? `<img src="${esc(project.icon)}" alt="" onerror="this.remove()">` : "";
+  return `<span class="repo-ic ${extra}" style="--c:${project.color || "var(--accent)"}" aria-hidden="true"><span>${esc(letter)}</span>${img}</span>`;
+}
+
+/** Repo name with its icon, for card headings. */
+const repoTitle = (project) => `<h2 class="with-ic">${repoIcon(project)}<span class="t">${esc(project.name)}</span></h2>`;
+
 /** Big portrait opposite the repo name: who is changing it right now. */
 function nowAv(name) {
   const src = AVATARS.get(name);
@@ -189,7 +199,7 @@ export function createHud() {
       const state = project.alive ? `<em class="live">${t("state.alive")}</em>` : `<em>${t("state.done")}</em>`;
       setCard(`
         <div class="card-head">
-          <div class="card-title"><div class="kicker"><i></i>${t("card.inFocus")} ${state}</div><h2>${esc(project.name)}</h2></div>
+          <div class="card-title"><div class="kicker"><i></i>${t("card.inFocus")} ${state}</div>${repoTitle(project)}</div>
           ${nowAv(project.author)}
         </div>
         ${project.description && project.description !== project.path ? `<p class="desc">${esc(truncate(project.description, 140))}</p>` : ""}
@@ -224,7 +234,7 @@ export function createHud() {
     event(project, e, { side }) {
       const url = eventUrl(project, e);
       setCard(`
-        <div class="kicker"><i></i>${kindLabel(e)} · ${esc(project.name)}</div>
+        <div class="kicker"><i></i>${kindLabel(e)} · ${repoIcon(project, "sm")}${esc(project.name)}</div>
         <h2>${esc(eventTitle(e))}</h2>
         <dl class="facts">
           <div><dt>${t("fact.date")}</dt><dd>${fmtDate(e.t)}</dd></div>
@@ -265,7 +275,7 @@ export function createHud() {
         const share = add + del ? Math.round(((me.add + me.del) / (add + del)) * 100) : 0;
         const src = AVATARS.get(me.name);
         const repos = (personInfo?.repos || []).map((r) =>
-          `<span class="chip" style="--c:${r.color}"><i></i>${esc(r.name)}<b>${r.count}</b></span>`).join("");
+          `<span class="chip" style="--c:${r.color}">${repoIcon(r, "chip-ic")}${esc(r.name)}<b>${r.count}</b></span>`).join("");
         setCard(`
           <div class="kicker"><i></i>${t("person.kicker", { period: esc(period) })}</div>
           <div class="me">
@@ -327,7 +337,7 @@ export function createHud() {
       const avatars = people.slice(0, 8).map((n) => miniAv(n)).join("");
       setCard(`
         <div class="kicker"><i></i>${t("finish.kicker")}</div>
-        <h2>${esc(project.name)}</h2>
+        ${repoTitle(project)}
         ${note ? `<p class="quote">«${esc(note)}»</p>` : ""}
         <dl class="facts">
           <div><dt>${t("fact.road")}</dt><dd>${fmtDate(from)} → ${fmtDate(to)}</dd></div>

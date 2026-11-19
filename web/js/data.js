@@ -90,6 +90,14 @@ export function authorResolver(rawNames, aliases = {}) {
  * Normalise raw projects: drop merge commits (the MR stands for them), sort events,
  * give everything stable ids and a lane colour, resolve author spellings.
  */
+/** A picture saved by the ingest (`avatars/<file>` under data/) or a bundled demo one; anything else → null. */
+export function assetPath(rel) {
+  if (typeof rel !== "string") return null;
+  if (/^avatars\/[\w.-]+$/.test(rel)) return `data/${rel}`;
+  if (/^img\/demo\/[\w.-]+\.svg$/.test(rel)) return rel; // demo placeholders
+  return null;
+}
+
 export function loadDataset(rawProjects, meta = {}, aliases = {}) {
   const raw = Array.isArray(rawProjects) ? rawProjects : [];
   const names = [];
@@ -165,6 +173,7 @@ export function loadDataset(rawProjects, meta = {}, aliases = {}) {
         description: (p.description || "").trim(),
         defaultBranch: p.defaultBranch || meta.defaultBranch || "main",
         webUrl: p.webUrl || "",
+        icon: assetPath(p.icon),
         totals,
         events,
       };
@@ -180,9 +189,8 @@ export function loadDataset(rawProjects, meta = {}, aliases = {}) {
   // Photos saved by fetch_gitlab.py: {author: "avatars/<file>"} relative to data/.
   const avatars = new Map();
   for (const [name, rel] of Object.entries(meta.avatars || {})) {
-    if (typeof rel !== "string") continue;
-    if (/^avatars\/[\w.-]+$/.test(rel)) avatars.set(who(name), `data/${rel}`);
-    else if (/^img\/demo\/[\w.-]+\.svg$/.test(rel)) avatars.set(who(name), rel); // demo placeholders
+    const src = assetPath(rel);
+    if (src) avatars.set(who(name), src);
   }
   return {
     projects,

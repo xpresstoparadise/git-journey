@@ -29,6 +29,8 @@ const THINGS = [
   "cache layer", "error pages", "search index", "PDF render", "audit log", "settings screen",
   "rate limiter", "import wizard", "metrics", "CI pipeline", "schema migration", "webhooks",
 ];
+const DEMO_ICONS = new Set(["core-platform", "ops-gateway", "history-ingest", "portal-ui"]);
+
 const MR_TITLES = [
   "Auth token rotation", "Paginated project sync", "Canary routing", "Design tokens", "Batch export",
   "Incremental sync cursor", "Audit trail", "Dark theme", "Docs profile v2", "Bulk import", "Search v2",
@@ -82,7 +84,8 @@ function makeProject(r, { id, desc, owner, created, from, to, team, mainEvery, m
       ...(m.squash ? {} : { additions: add, deletions: del, files: 1 + Math.floor(r() * 12) }),
     });
   }
-  return { id, name: id, path: `demo/${id}`, author: owner, createdAt: created, description: desc, defaultBranch: "main", webUrl: "", events };
+  const icon = DEMO_ICONS.has(id) ? `img/demo/repo-${id}.svg` : undefined; // the rest show the letter tile
+  return { id, name: id, path: `demo/${id}`, author: owner, createdAt: created, description: desc, defaultBranch: "main", webUrl: "", icon, events };
 }
 
 function build() {

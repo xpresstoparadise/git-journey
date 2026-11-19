@@ -148,6 +148,12 @@ Two sources, they work together:
 Everything ends up in `web/data/avatars/`, so the browser never needs GitLab (LAN, video
 recording). No photo — initials.
 
+**Repo icons** on the cards, strongest first: your own file `photos/repos/<repo name>.png`
+(jpg/png/webp/gif/svg); the project avatar from GitLab; for local clones, a logo committed
+in the repo (`logo.svg|png`, `icon.*`, `avatar.*` in the root, `.gitlab/`, `.github/`,
+`assets/`, `docs/`, `images/`, `static/`, `public/`). No icon — a tile with the repo's
+first letter in its colour.
+
 ## Controls
 
 | Key / gesture | Action |

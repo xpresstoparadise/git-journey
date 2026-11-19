@@ -377,7 +377,7 @@ export function createCinema({ L, scene, camera, hud, player, projects, dataset,
     let personInfo = null;
     if (person) {
       const repos = projects
-        .map((p) => ({ name: p.name, color: p.color, count: withBranchCommits(p.events).filter((e) => e.author === person).length }))
+        .map((p) => ({ name: p.name, color: p.color, icon: p.icon, count: withBranchCommits(p.events).filter((e) => e.author === person).length }))
         .filter((r) => r.count)
         .sort((a, b) => b.count - a.count);
       const ts = projects.flatMap((p) => withBranchCommits(p.events)).filter((e) => e.author === person).map((e) => e.t);

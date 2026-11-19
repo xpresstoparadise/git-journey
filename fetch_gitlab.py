@@ -15,6 +15,7 @@ from datetime import datetime, timezone
 from ingest import suggest
 from ingest.authors import AuthorBook
 from ingest.avatars import fetch_avatars
+from ingest.icons import apply_icons, fetch_gitlab_icons, own_icons
 from ingest.photos import collect_photos
 from ingest.settings_file import drop_authors, wants_project, write_ui_config
 from ingest.cache import DATA_FORMAT, load_previous, observe_cached, previous_avatars, reresolve, reusable
@@ -102,6 +103,10 @@ def main(argv: list[str] | None = None) -> int:
     fresh = [drop_authors(p, drop) for p in [finalize(d, book) for d in drafts] + [reresolve(p, book) for p in cached]]
     result = sorted(fresh, key=lambda p: (p["createdAt"], p["name"]))
     print(f"Обновлено: {len(drafts)} · из кэша: {len(cached)}")
+
+    gitlab_icons = {} if args.no_avatars else fetch_gitlab_icons(api, drafts, settings.out_dir)
+    n_icons = apply_icons(result, settings.out_dir, gitlab_icons, own_icons(settings.photos_dir, result, settings.out_dir))
+    print(f"Иконки репозиториев: {n_icons} из {len(result)}")
 
     avatars = previous_avatars(settings.out_dir)
     if not args.no_avatars:

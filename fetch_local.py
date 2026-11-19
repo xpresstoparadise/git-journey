@@ -19,6 +19,7 @@ from ingest.collect import finalize, observe_all
 from ingest.config import load_settings
 from ingest.export import write_dataset
 from ingest.local import GitError, collect_all, git
+from ingest.icons import apply_icons, local_icons, own_icons
 from ingest.photos import collect_photos
 from ingest.settings_file import drop_authors, write_ui_config
 from ingest.special import SpecialMarks
@@ -64,6 +65,8 @@ def main(argv: list[str] | None = None) -> int:
     result = sorted((drop_authors(finalize(d, book), drop) for d in drafts), key=lambda p: (p["createdAt"] or "", p["name"]))
     known = {a for p in result for a in p["totals"]["authors"]} | {p["author"] for p in result}
     photos = collect_photos(settings.photos_dir, book, known, settings.out_dir)
+    n_icons = apply_icons(result, settings.out_dir, local_icons(drafts, settings.out_dir), own_icons(settings.photos_dir, result, settings.out_dir))
+    print(f"Иконки репозиториев: {n_icons} из {len(result)}")
 
     meta = {
         "fetchedAt": datetime.now(timezone.utc).isoformat(timespec="seconds"),

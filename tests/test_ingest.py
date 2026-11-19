@@ -242,6 +242,41 @@ class MrCommitsTest(unittest.TestCase):
         self.assertFalse(any(k.startswith("_") for e in p["events"] for k in e))
 
 
+class IconTest(unittest.TestCase):
+    def test_gitlab_icon_own_icon_wins_and_no_internal_fields(self):
+        from ingest.icons import apply_icons, fetch_gitlab_icons, own_icons
+        api = FakeGitLab(commits=[commit("aaa", "2026-03-01", "x", "A", "a@x", 1, 0)])
+        draft = collect_project(api, {**PROJECT, "avatar_url": "http://gitlab/uploads/project/7/logo.png"}, settings())
+        with tempfile.TemporaryDirectory() as tmp:
+            data = Path(tmp) / "data"
+            p = finalize(draft, AuthorBook())
+            self.assertFalse(any(k.startswith("_") for k in p), "no _icon/_owner in the export")
+            got = fetch_gitlab_icons(api, [draft], data)
+            self.assertEqual(apply_icons([p], data, got), 1)
+            self.assertTrue(p["icon"].startswith("avatars/repo-") and (data / p["icon"]).exists())
+            # photos/repos/<name>.svg beats the GitLab avatar
+            (Path(tmp) / "photos" / "repos").mkdir(parents=True)
+            (Path(tmp) / "photos" / "repos" / "tool.svg").write_text("<svg/>", encoding="utf-8")
+            apply_icons([p], data, got, own_icons(Path(tmp) / "photos", [p], data))
+            self.assertTrue(p["icon"].endswith(".svg"))
+
+    def test_logo_in_clone_and_cached_icon_kept(self):
+        from ingest.icons import apply_icons, find_logo
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Path(tmp) / "repo"
+            (repo / ".gitlab").mkdir(parents=True)
+            self.assertIsNone(find_logo(repo))
+            (repo / ".gitlab" / "logo.png").write_bytes(b"png")
+            self.assertEqual(find_logo(repo).name, "logo.png")
+            data = Path(tmp) / "data"
+            (data / "avatars").mkdir(parents=True)
+            (data / "avatars" / "repo-old.png").write_bytes(b"png")
+            cached = [{"id": "1", "icon": "avatars/repo-old.png"}, {"id": "2", "icon": "avatars/gone.png"}]
+            apply_icons(cached, data)
+            self.assertEqual(cached[0]["icon"], "avatars/repo-old.png")
+            self.assertNotIn("icon", cached[1], "an icon whose file is gone is dropped")
+
+
 class SpecialTest(unittest.TestCase):
     def test_marks(self):
         m = SpecialMarks()

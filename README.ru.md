@@ -155,6 +155,12 @@ netsh advfirewall firewall add rule name="Git Journey 8766" dir=in action=allow 
 Всё складывается в `web/data/avatars/`, браузеру не нужен доступ к GitLab (LAN, запись
 видео). Нет фото — инициалы.
 
+**Иконки репозиториев** на карточках, по старшинству: свой файл
+`photos/repos/<имя репо>.png` (jpg/png/webp/gif/svg); аватарка проекта из GitLab; для
+локальных клонов — логотип из самого репо (`logo.svg|png`, `icon.*`, `avatar.*` в корне,
+`.gitlab/`, `.github/`, `assets/`, `docs/`, `images/`, `static/`, `public/`). Нет иконки —
+плитка с первой буквой репо в его цвете.
+
 ## Управление
 
 | Клавиша / жест | Действие |

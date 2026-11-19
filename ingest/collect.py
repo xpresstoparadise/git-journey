@@ -126,6 +126,7 @@ def collect_project(api: GitLabApi, project: dict, settings: Settings) -> Draft 
             "webUrl": project.get("web_url") or "",
             "lastActivityAt": project.get("last_activity_at") or "",
             "_owner": owner,
+            "_icon": project.get("avatar_url") or "",
         }
     )
 
@@ -282,8 +283,8 @@ def observe_all(book: AuthorBook, drafts: list[Draft]) -> None:
 def finalize(draft: Draft, book: AuthorBook) -> dict:
     """Resolve authors and attach full totals (the event list itself may be sampled)."""
     resolve = lambda who: book.resolve(**who.ident)  # noqa: E731
-    meta = dict(draft.meta)
-    owner = meta.pop("_owner")
+    owner = draft.meta["_owner"]
+    meta = {k: v for k, v in draft.meta.items() if not k.startswith("_")}  # _owner, _icon, _logo stay internal
     def public(event: dict, who) -> dict:
         out = {k: v for k, v in event.items() if not k.startswith("_")}
         out["author"] = resolve(who)

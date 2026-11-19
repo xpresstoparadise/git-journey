@@ -1131,3 +1131,18 @@ body.no-grain .grain { display: none; }
   border-radius: 8px; pointer-events: none; white-space: pre;
 }
 
+/* Repo icons on cards — sized in em, so they follow the heading in every layout
+   (wide, compact card, 9:16 recording). No picture → the letter tile shows. */
+.card h2.with-ic { display: flex; align-items: center; gap: 0.38em; min-width: 0; }
+.card h2.with-ic > .t { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.repo-ic {
+  position: relative; flex: none; display: inline-grid; place-items: center;
+  width: 1.2em; height: 1.2em; border-radius: 0.3em; overflow: hidden;
+  background: color-mix(in srgb, var(--c) 22%, var(--surface-2)); color: var(--c); font-weight: 800;
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--c) 55%, transparent);
+}
+.repo-ic > span { font-size: 0.6em; line-height: 1; }
+.repo-ic img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.card .kicker .repo-ic.sm { width: 1.5em; height: 1.5em; margin-right: -2px; }
+.card .chip .repo-ic.chip-ic { width: 1.45em; height: 1.45em; border-radius: 0.35em; margin-left: -3px; }
+
