@@ -154,12 +154,32 @@ in the repo (`logo.svg|png`, `icon.*`, `avatar.*` in the root, `.gitlab/`, `.git
 `assets/`, `docs/`, `images/`, `static/`, `public/`). No icon — a tile with the repo's
 first letter in its colour.
 
+## Two cuts of the film
+
+A *visit* is one repo's week of changes. The cuts differ in where the camera stops.
+
+* **Highlights** (default) — the camera stops only at key visits:
+  every repo's birth, every finished repo merging back into the trunk, commits marked
+  `Journey: finish` / `Journey: goodbye`, and on top of that the strongest of the rest —
+  MRs first, then big diffs — up to `film.highlightStops` (26). On a big team those still get
+  at least 40 % of that budget, so MRs keep opening into their commits.
+  Every other visit is not lost: its dots light up in the background as the trunk flies past,
+  without a stop or a card. Faster pace (the trunk runs almost twice as fast). About
+  1.5 minutes for a small team; longer for a big one, since every birth and finish is a stop.
+* **Full** — a stop at every visit: camera move, card, the week's dots one by one. Calmer
+  pace. The length follows the team's activity and easily runs to many minutes.
+* **One person** (pick someone in the top bar) — its own cut: a stop at every visit where
+  that person changed something, plus their own farewell.
+
+Switch with **M**, the buttons in the top bar, `?mode=highlights|full` or `film.mode` in
+`journey.json`. Recording: 16:9 keeps the current cut, Telegram 9:16 and square use Highlights.
+
 ## Controls
 
 | Key / gesture | Action |
 |---|---|
 | Space | pause / continue |
-| M | **Highlights** (~1.5 min) ↔ **Full** (every visit) |
+| M | **Highlights** ↔ **Full** (see [Two cuts](#two-cuts-of-the-film)) |
 | click on the bottom timeline | jump to that week |
 | P | cinema mode: fullscreen, letterbox, subtitles |
 | **Record** button | choose a format → the film from the start → a video file |

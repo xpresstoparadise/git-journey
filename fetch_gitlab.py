@@ -72,13 +72,14 @@ def main(argv: list[str] | None = None) -> int:
                     seen.add(p["id"])
                     projects.append(p)
     else:
+        # All projects visible to the token (instance-wide as far as ACL allows).
         projects = api.get_all(
             "/projects",
-            {"membership": "true", "simple": "false", "order_by": "last_activity_at", "sort": "desc"},
+            {"membership": "false", "simple": "false", "order_by": "last_activity_at", "sort": "desc"},
         )
     candidates = [p for p in projects if is_candidate(p, settings.period)
                   and wants_project(p.get("path_with_namespace") or p.get("path") or "", settings.file)]
-    print(f"Membership projects: {len(projects)} · candidates for {settings.period}: {len(candidates)}")
+    print(f"Visible projects: {len(projects)} · candidates for {settings.period}: {len(candidates)}")
 
     previous = {} if args.full else load_previous(settings.out_dir, str(settings.period), settings.url)
     drafts, cached = [], []
