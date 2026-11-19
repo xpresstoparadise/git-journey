@@ -1,7 +1,8 @@
 // Which visits the camera stops at. Pure.
 //
 // «Главное»: every repo's birth and every finished repo's merge back — the plot —
-// then the strongest of the rest (MRs, big diffs) up to `max`.
+// then the strongest of the rest (MRs, big diffs) up to `max` — and never fewer
+// than 40 % of `max` of those, however many repos were born.
 // One person's way: every visit where they changed something.
 // Special moments (Journey: finish / goodbye) are always stops.
 // Everything else lights up in the background as the trunk flies past.
@@ -44,9 +45,10 @@ export function keyVisits(visits, { max = 30, person = null } = {}) {
     .filter((v) => !keep.has(v.index))
     .map((v) => ({ v, s: visitScore(v) }))
     .sort((a, b) => b.s - a.s);
-  for (const { v } of rest) {
-    if (keep.size >= max) break;
-    keep.add(v.index);
-  }
+  // Births and merges alone can use up `max` on a big team — then no MR would ever
+  // open into its commits. The strongest of the rest (MRs score highest) always
+  // get at least 40 % of the budget on top.
+  const room = Math.max(max - keep.size, Math.ceil(max * 0.4));
+  for (const { v } of rest.slice(0, room)) keep.add(v.index);
   return keep;
 }

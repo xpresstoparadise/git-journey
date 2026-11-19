@@ -169,12 +169,12 @@ class NewFeaturesTest(unittest.TestCase):
         self.assertEqual((mr["additions"], mr["deletions"], mr["files"]), (3, 1, 2))
 
     def test_cache_reuse_and_reresolve(self):
-        from ingest.cache import load_previous, reresolve, reusable
+        from ingest.cache import DATA_FORMAT, load_previous, reresolve, reusable
         with tempfile.TemporaryDirectory() as tmp:
             prev = {"id": "7", "lastActivityAt": "2026-05-01T00:00:00Z", "defaultBranch": "main", "author": "Elena Morozova",
                     "events": [{"type": "commit", "author": "Elena Morozova"}],
                     "totals": {"authors": {"Elena Morozova": {"commits": 2, "mrs": 0, "additions": 5, "deletions": 1}}}}
-            write_dataset(Path(tmp), {"period": "2026", "source": "http://gitlab"}, [prev])
+            write_dataset(Path(tmp), {"period": "2026", "source": "http://gitlab", "format": DATA_FORMAT}, [prev])
             cache = load_previous(Path(tmp), "2026", "http://gitlab")
             self.assertTrue(reusable(cache, {"id": 7, "last_activity_at": "2026-05-01T00:00:00Z", "default_branch": "main"}, "main"))
             self.assertIsNone(reusable(cache, {"id": 7, "last_activity_at": "2026-06-01T00:00:00Z", "default_branch": "main"}, "main"))
@@ -183,6 +183,14 @@ class NewFeaturesTest(unittest.TestCase):
             again = reresolve(prev, book)
             self.assertEqual(again["events"][0]["author"], "Елена Морозова")
             self.assertEqual(again["totals"]["authors"]["Елена Морозова"]["commits"], 2)
+
+    def test_old_cache_format_is_not_reused(self):
+        # An export from before MR commits existed must not be reused as is.
+        from ingest.cache import load_previous
+        with tempfile.TemporaryDirectory() as tmp:
+            prev = {"id": "7", "lastActivityAt": "2026-05-01T00:00:00Z", "defaultBranch": "main", "events": []}
+            write_dataset(Path(tmp), {"period": "2026", "source": "http://gitlab"}, [prev])  # no "format"
+            self.assertEqual(load_previous(Path(tmp), "2026", "http://gitlab"), {})
 
     def test_suggest_by_transliteration(self):
         from collections import Counter

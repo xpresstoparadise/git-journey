@@ -9,6 +9,11 @@ from pathlib import Path
 
 from .authors import AuthorBook
 
+# Bump when an export gains data that old exports lack (2: MR commits, avatars,
+# special marks). An older cache is never reused — otherwise projects without new
+# activity kept the old shape forever (MRs that never open into commits).
+DATA_FORMAT = 2
+
 
 def load_previous(out_dir: Path, period: str, url: str) -> dict[str, dict]:
     path = out_dir / "gitlab_raw.json"
@@ -20,6 +25,9 @@ def load_previous(out_dir: Path, period: str, url: str) -> dict[str, dict]:
         return {}
     if str(data.get("period")) != str(period) or data.get("source") != url:
         return {}  # different scope — nothing is reusable
+    if data.get("format") != DATA_FORMAT:
+        print(f"Кэш {path.name} в старом формате — выгружаю всё заново")
+        return {}
     return {str(p["id"]): p for p in data.get("projects", []) if p.get("lastActivityAt")}
 
 

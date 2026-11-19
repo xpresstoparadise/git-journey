@@ -17,7 +17,7 @@ from ingest.authors import AuthorBook
 from ingest.avatars import fetch_avatars
 from ingest.photos import collect_photos
 from ingest.settings_file import drop_authors, wants_project, write_ui_config
-from ingest.cache import load_previous, observe_cached, previous_avatars, reresolve, reusable
+from ingest.cache import DATA_FORMAT, load_previous, observe_cached, previous_avatars, reresolve, reusable
 from ingest.collect import collect_project, finalize, is_candidate, observe_all
 from ingest.config import load_settings
 from ingest.export import write_dataset
@@ -113,6 +113,7 @@ def main(argv: list[str] | None = None) -> int:
     avatars.update(collect_photos(settings.photos_dir, book, known, settings.out_dir))  # own photos win
 
     meta = {
+        "format": DATA_FORMAT,
         "avatars": avatars,
         "fetchedAt": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "source": settings.url,

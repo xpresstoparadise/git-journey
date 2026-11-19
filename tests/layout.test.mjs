@@ -101,7 +101,8 @@ test("highlights keep every birth and merge, and stay within budget", async () =
       if (v.first || (v.last && !v.lane.alive)) assert.ok(keep.has(v.index));
     }
     const mandatory = L.visits.filter((v) => v.first || (v.last && !v.lane.alive)).length;
-    assert.ok(keep.size <= Math.max(30, mandatory));
+    // Budget: `max`, or the mandatory stops plus 40 % of `max` for MRs/big diffs on a big team.
+    assert.ok(keep.size <= Math.max(30, mandatory + Math.ceil(30 * 0.4)));
   }
 });
 
@@ -236,4 +237,26 @@ test("framing: long flights pull back and slow down, short ones stay as they are
   assert.deepEqual(flightPlan(300, 1600, { z: 1.15, minZ: 0.47 }), { z: 1.15, slow: 1 });
   const far = flightPlan(4200, 1600, { z: 1.15, minZ: 0.47 });
   assert.ok(far.z < 1.15 && far.z >= 0.47 && far.slow > 1 && far.slow <= 1.9);
+});
+
+test("highlights: on a big team MR visits still get stops (births alone exceed the budget)", async () => {
+  const { keyVisits } = await import("../web/js/story.js");
+  const day = (d) => new Date(Date.UTC(2026, 0, 1 + d)).toISOString().slice(0, 10);
+  const raw = Array.from({ length: 40 }, (_, i) => ({
+    id: `big-${i}`, name: `fictional-${i}`, path: `team/fictional-${i}`, author: "Ada Example", createdAt: day(i * 7),
+    events: [
+      { type: "created", date: day(i * 7), author: "Ada Example" },
+      { type: "commit", date: day(i * 7 + 3), sha: `c${i}`, message: "start", author: "Ada Example", additions: 5, deletions: 0 },
+      { type: "mr", date: day(i * 7 + 30), iid: 1, title: "Feature", author: "Bob Sample", merged: true, commitCount: 2,
+        commits: [0, 1].map((k) => ({ type: "commit", date: day(i * 7 + 20 + k * 5), sha: `m${i}${k}`, message: `step ${k}`, author: "Bob Sample", additions: 9, deletions: 1 })) },
+    ],
+  }));
+  const ds = loadDataset(raw, { period: "2026" });
+  const bounds = periodBounds(ds, "2026");
+  const L = buildLayout(sliceProjects(ds, bounds), bounds);
+  const keep = keyVisits(L.visits, { max: 26 });
+  const births = L.visits.filter((v) => v.first).length;
+  assert.ok(births > 26, `needs more births than the budget (${births})`);
+  const mrStops = L.visits.filter((v) => keep.has(v.index) && !v.first && v.nodes.some((n) => n.kind === "mr"));
+  assert.ok(mrStops.length >= Math.ceil(26 * 0.4), `only ${mrStops.length} MR stops`);
 });
