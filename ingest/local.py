@@ -121,6 +121,18 @@ MR_IID = [
     re.compile(r"\(#(\d+)\)\s*$", re.M),
 ]
 MR_BRANCH = re.compile(r"^Merge (?:branch|remote-tracking branch) '([^']+)'")
+PR_BRANCH = re.compile(r"^Merge pull request #\d+ from [^/\s]+/(\S+)")
+
+
+def merged_branch(message: str) -> str:
+    """Source branch of a merge commit: «Merge branch 'x' into 'main'» (GitLab, git),
+    «Merge remote-tracking branch 'origin/x'», «Merge pull request #1 from user/x»."""
+    first = message.split("\n")[0].strip()
+    m = MR_BRANCH.match(first) or PR_BRANCH.match(first)
+    if not m:
+        return ""
+    name = m.group(1)
+    return (name[len("origin/"):] if name.startswith("origin/") else name)[:80]
 
 
 def mr_from_merge(c: dict, seq: int) -> tuple[int, str]:
@@ -165,6 +177,7 @@ def collect_local(repo: Path, period: Period, branch: str, marks: SpecialMarks, 
         who = Who(*max(counts, key=counts.get)) if counts else Who(m["name"], m["email"])
         event = {
             "type": "mr", "date": m["date"], "iid": iid, "title": title, "merged": True,
+            "branch": merged_branch(m["message"]), "target": ref.removeprefix("origin/"),
             **({"additions": sum(c["additions"] for c, _ in branch_commits),
                 "deletions": sum(c["deletions"] for c, _ in branch_commits)} if branch_commits else {}),
             **marks.detect(m["message"]),

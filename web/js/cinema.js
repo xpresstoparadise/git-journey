@@ -229,7 +229,11 @@ export function createCinema({ L, scene, camera, hud, player, projects, dataset,
       if (!br.started) {
         br.started = true;
         rec.growTo(b.h0);
-        hud.caption(t("cap.branch", { iid: b.event.iid, name: p.name }), truncate(b.event.title || "", 70));
+        const be = b.event;
+        hud.caption(
+          be.branch ? t("cap.branchNamed", { branch: truncate(be.branch, 40), name: p.name }) : t("cap.branch", { iid: be.iid, name: p.name }),
+          truncate(`${be.branch ? `!${be.iid} ` : ""}${be.title || ""}`, 70),
+        );
         await player.tween(T.MR, (k) => {
           const pt = br.fork.set(k);
           br.forkHalo.set(k);
@@ -261,7 +265,11 @@ export function createCinema({ L, scene, camera, hud, player, projects, dataset,
       br.bead?.classList.add("shown");
       rec.growTo(b.h3);
       const kc = b.event.commitCount ?? b.commits.length;
-      hud.caption(t("cap.merged", { iid: b.event.iid, name: p.name }), `${kc ? `${kc} ${w(kc, "commit")} · ` : ""}${fmtDay(b.event.t)}`);
+      const be = b.event;
+      hud.caption(
+        be.branch ? t("cap.mergedNamed", { branch: truncate(be.branch, 40), target: be.target || p.defaultBranch || "main" }) : t("cap.merged", { iid: be.iid, name: p.name }),
+        `${be.branch ? `!${be.iid} · ` : ""}${kc ? `${kc} ${w(kc, "commit")} · ` : ""}${fmtDay(be.t)}`,
+      );
       await player.wait(perNode * 0.5);
     }
 

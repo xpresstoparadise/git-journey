@@ -73,8 +73,11 @@ function makeProject(r, { id, desc, owner, created, from, to, team, mainEvery, m
     }
     const add = commits.reduce((n, c) => n + (c.additions || 0), 0);
     const del = commits.reduce((n, c) => n + (c.deletions || 0), 0);
+    const title = MR_TITLES[(i * 7 + id.length) % MR_TITLES.length];
+    const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
     events.push({
-      type: "mr", date: m.merge, iid: i + 1, title: MR_TITLES[(i * 7 + id.length) % MR_TITLES.length], author, merged: true,
+      type: "mr", date: m.merge, iid: i + 1, title, author, merged: true,
+      branch: `${i % 3 === 2 ? "fix" : "feature"}/${slug}`, target: "main",
       commitCount: m.commits, commits,
       ...(m.squash ? {} : { additions: add, deletions: del, files: 1 + Math.floor(r() * 12) }),
     });

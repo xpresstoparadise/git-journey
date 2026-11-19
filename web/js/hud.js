@@ -230,7 +230,8 @@ export function createHud() {
           <div><dt>${t("fact.date")}</dt><dd>${fmtDate(e.t)}</dd></div>
           <div><dt>${t("fact.author")}</dt><dd>${miniAv(e.author)}${esc(e.author)}</dd></div>
           ${e.sha ? `<div><dt>SHA</dt><dd>${esc(e.sha)}</dd></div>` : ""}
-          ${e.type === "mr" ? `<div><dt>${t("fact.status")}</dt><dd>${t("status.merged", { branch: esc(project.defaultBranch) })}</dd></div>` : ""}
+          ${e.type === "mr" && e.branch ? `<div><dt>${t("fact.branch")}</dt><dd>${esc(truncate(e.branch, 40))}</dd></div>` : ""}
+          ${e.type === "mr" ? `<div><dt>${t("fact.status")}</dt><dd>${t("status.merged", { branch: esc(e.target || project.defaultBranch) })}</dd></div>` : ""}
           ${e.files != null ? `<div><dt>${t("fact.files")}</dt><dd>${fmtInt(e.files)}</dd></div>` : ""}
         </dl>
         ${e.additions != null ? `<div class="stats two">

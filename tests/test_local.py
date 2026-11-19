@@ -67,6 +67,7 @@ class LocalIngestTest(unittest.TestCase):
         self.assertEqual(types, ["created", "commit", "mr", "commit"])
         mr = next(e for e in p["events"] if e["type"] == "mr")
         self.assertEqual((mr["iid"], mr["title"], mr["author"]), (7, "Full-text search", "Bob Ray"))
+        self.assertEqual((mr["branch"], mr["target"]), ("feature/search", "main"))
         self.assertEqual([c["message"] for c in mr["commits"]], ["search: index", "search: ranking"])
         bye = p["events"][-1]
         self.assertEqual((bye["special"], bye["note"], bye["author"]), ("goodbye", "спасибо!", "Bob Ray"))
@@ -91,3 +92,12 @@ class LocalIngestTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class MergedBranchTest(unittest.TestCase):
+    def test_branch_from_merge_messages(self):
+        from ingest.local import merged_branch
+        self.assertEqual(merged_branch("Merge branch 'feature/search' into 'main'\n\nSee merge request team/a!7"), "feature/search")
+        self.assertEqual(merged_branch("Merge remote-tracking branch 'origin/fix/login'"), "fix/login")
+        self.assertEqual(merged_branch("Merge pull request #12 from ada/feature-x\n\nFeature X"), "feature-x")
+        self.assertEqual(merged_branch("Fix typo"), "")

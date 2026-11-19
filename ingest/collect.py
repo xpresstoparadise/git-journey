@@ -164,6 +164,8 @@ def collect_project(api: GitLabApi, project: dict, settings: Settings) -> Draft 
             "date": d,
             "iid": mr.get("iid"),
             "title": (mr.get("title") or "")[:140],
+            "branch": (mr.get("source_branch") or "")[:80],   # the MR's own branch
+            "target": mr.get("target_branch") or branch,       # where it was merged
             "merged": True,
             "_squash": mr.get("squash_commit_sha") or "",
             **marks.detect(mr.get("title"), mr.get("description")),

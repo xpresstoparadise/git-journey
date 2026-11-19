@@ -26,7 +26,10 @@ function nodeLabel(n) {
   if (n.kind === "mr") {
     const k = e.commitCount ?? e.commits?.length ?? 0;
     const commits = k ? `${k} ${w(k, "commit")} · ` : "";
-    return { title: `!${e.iid} ${truncate(e.title, 28)}`, meta: `${fmtDay(e.t)} · ${commits}${t("node.merged")} · ${esc(who)}` };
+    // «feature/x → main» when the source branch is known, else «merged into main».
+    const target = esc(e.target || n.lane?.project.defaultBranch || "main");
+    const into = e.branch ? `${esc(truncate(e.branch, 32))} → ${target}` : t("node.merged", { target });
+    return { title: `!${e.iid} ${truncate(e.title, 28)}`, meta: `${fmtDay(e.t)} · ${into} · ${commits}${esc(who)}` };
   }
   return { title: truncate(e.message || e.sha, 30), meta: `${fmtDay(e.t)}${delta} · ${esc(who)}` };
 }
@@ -128,7 +131,11 @@ function buildMarkup(L, authorIdx) {
     <path class="trunk-line" d="${trunkD}" />
     <path class="trunk-ahead" d="M ${f(trunkX)} ${f(L.startY)} L ${f(trunkX)} ${f(L.startY)}" />
   </g>`);
-  tx.push(`<g class="trunk"><text class="trunk-tag" x="${f(trunkX + 16)}" y="${f(L.startY)}">GitLab · main</text></g>`);
+  // The trunk is everyone's default branch — name the one most repos use.
+  const branches = {};
+  for (const l of L.lanes) branches[l.project.defaultBranch || "main"] = (branches[l.project.defaultBranch || "main"] || 0) + 1;
+  const trunkBranch = Object.entries(branches).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "main";
+  tx.push(`<g class="trunk"><text class="trunk-tag" x="${f(trunkX + 16)}" y="${f(L.startY)}">GitLab · ${esc(trunkBranch)}</text></g>`);
 
   // Nodes + labels (labels only show for the lane in focus, or on hover).
   out.push(`<g class="nodes">`);

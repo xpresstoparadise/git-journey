@@ -223,7 +223,8 @@ class MrCommitsTest(unittest.TestCase):
             commit("bbb", "2026-03-02", "mr work 1", "B", "b@x", 7, 0),
             commit("ccc", "2026-03-03", "mr work 2", "B", "b@x", 3, 2),
         ]
-        api = FakeGitLab(commits=main, mrs=[{"iid": 9, "title": "Feature", "merged_at": "2026-03-04T10:00:00Z", "author": {"name": "B", "username": "b"}}])
+        api = FakeGitLab(commits=main, mrs=[{"iid": 9, "title": "Feature", "merged_at": "2026-03-04T10:00:00Z", "author": {"name": "B", "username": "b"},
+                                             "source_branch": "feature/x", "target_branch": "main"}])
         api.mr_commit_list = [main[1], main[2], {"id": "zzzzzzzzzz", "short_id": "zzz", "title": "squashed away", "committed_date": "2026-03-02T00:00:00Z", "author_name": "C", "author_email": "c@x", "parent_ids": ["p"]}]
         draft = collect_project(api, PROJECT, settings())
         book = AuthorBook()
@@ -236,6 +237,7 @@ class MrCommitsTest(unittest.TestCase):
         self.assertEqual(mr["commits"][0]["additions"], 7)
         self.assertIsNone(mr["commits"][2]["additions"])
         self.assertEqual(mr["commitCount"], 3)
+        self.assertEqual((mr["branch"], mr["target"]), ("feature/x", "main"))
         self.assertEqual(p["totals"]["commits"], 3, "totals still count every main commit")
         self.assertFalse(any(k.startswith("_") for e in p["events"] for k in e))
 
